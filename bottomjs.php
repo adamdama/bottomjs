@@ -34,16 +34,22 @@ class  plgSystemBottomjs extends JPlugin
 		// create array to contain scripts
 		$scripts = array();
 		
+		// string to store the document stripped of tags
+		$newDoc = '';
+		
 		// loop through instances of script tags in the document
 		while($s = strpos($doc, $this->scriptStartTag, $offset))
-		{			
+		{				
+			// add the text before the script tag to the new document
+			$newDoc .= substr($doc, $offset, $s - $offset);
+			
 			// set closing tag position
 			$e = strpos($doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
 			
 			// if end tag is not found stop looping
-			if($e === false)
+			if($e === false)				
 				break;
-
+			
 			// add the script to the array
 			$scripts[] = substr($doc, $s, $e - $s);
 			
@@ -51,7 +57,10 @@ class  plgSystemBottomjs extends JPlugin
 			$offset = $e;
 		}
 		
-		echo '<pre>',print_r($scripts),'</pre>';exit;
+		// add the rest of the document to the output string
+		$newDoc .= substr($doc, $e);
+		
+		//echo '<pre>',print_r($newDoc),'</pre>';exit;
 		
 		// return the new document
 		JResponse::setBody($doc);
