@@ -23,9 +23,18 @@
 				<field
 					name="insert_at"
 					type="text"
-					label="PLG_SYSTEM_BOTTOMJS_FIELD INSERT_AT_LABEL"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_INSERT_AT_LABEL"
 					description="PLG_SYSTEM_BOTTOMJS_FIELD INSERT_AT_DESC"
 					default="</body>" />
+				<field
+					name="order"
+					type="list"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_ORDER_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD ORDER_DESC"
+					default="-1">
+					<option value ="-1">PLG_SYSTEM_BOTTOMJS_OPTION_ORDER_BEFORE</option>
+					<option value ="1">PLG_SYSTEM_BOTTOMJS_OPTION_ORDER_AFTER</option>
+				</field>
 			</fieldset>
 		</fields>
 	</config>
