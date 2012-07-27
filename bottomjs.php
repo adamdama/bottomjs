@@ -40,11 +40,40 @@ class  plgSystemBottomjs extends JPlugin
 		// get the document
 		$doc = JResponse::getBody();
 		
+		// string to store the document stripped of tags
+		$newDoc = $this->stripScripts($doc);
+		
+		// insert the scripts at the specified position
+		$newDoc = $this->insertScripts($this->params->get('insert_at'), $newDoc, $this->scripts);
+		
+		//echo '<pre>',print_r($newDoc),'</pre>';exit;
+		
+		// set the new document
+		JResponse::setBody($newDoc);
+		
+		return true;
+	}
+
+	/**
+	 * Method to catch the remove scripts from a document.
+	 *
+	 * @param	string	$doc the string to strip scripts from
+	 * 
+	 * @return  string  the processed document
+	 *
+	 * @since   2.5
+	 */
+	private function stripScripts($doc='')
+	{
+		// if the string is empty there is nothing to strip
+		if($doc == '')
+			return $doc;
+		
+		// empty strip to store the stripped document
+		$newDoc = '';	
+		
 		// set the string offest
 		$offset = 0;
-		
-		// string to store the document stripped of tags
-		$newDoc = '';
 		
 		// loop through instances of script tags in the document
 		while($s = strpos($doc, $this->scriptStartTag, $offset))
@@ -69,15 +98,7 @@ class  plgSystemBottomjs extends JPlugin
 		// add the rest of the document to the output string
 		$newDoc .= substr($doc, $e);
 		
-		// insert the scripts at the specified position
-		$newDoc = $this->insertScripts('</body>', $newDoc, $this->scripts);
-		
-		//echo '<pre>',print_r($newDoc),'</pre>';exit;
-		
-		// set the new document
-		JResponse::setBody($newDoc);
-		
-		return true;
+		return $newDoc;
 	}
 
 	/**
@@ -94,15 +115,23 @@ class  plgSystemBottomjs extends JPlugin
 	private function insertScripts($where, $doc='', $scripts=array())
 	{
 		// if the document or scripts are empty we can't do anything here
-		if($doc == '' || empty($scripts))
+		if($where == '' || empty($scripts))
 			return $doc;
 		
-		// find the break point in the document
-		$break = strpos($doc, $where);
+		// initialise the string halves
+		$l = '';
+		$r = '';
 		
-		// split the string into its left and right components
-		$l = substr($doc, 0, $break-1);
-		$r = substr($doc, $break);
+		// if the document is empty we don't need to split it
+		if(!$doc)
+		{
+			// find the break point in the document
+			$break = strpos($doc, $where);
+			
+			// split the string into its left and right components
+			$l = substr($doc, 0, $break-1);
+			$r = substr($doc, $break);
+		}
 		
 		// loop the scripts and add them to the left string
 		foreach($scripts as $s)
