@@ -20,6 +20,12 @@
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
+				<field
+					name="insert_at"
+					type="text"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD INSERT_AT_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD INSERT_AT_DESC"
+					default="</body>" />
 			</fieldset>
 		</fields>
 	</config>
