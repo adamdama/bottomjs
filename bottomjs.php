@@ -31,7 +31,7 @@ class  plgSystemBottomjs extends JPlugin
 	 * @since   2.5
 	 */
 	function onAfterRender()
-	{
+	{		
 		$app = JFactory::getApplication();
 		// quit if in application is admin
 		if($app->isAdmin())
@@ -42,11 +42,9 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// string to store the document stripped of tags
 		$newDoc = $this->stripScripts($doc);
-		
+
 		// insert the scripts at the specified position
 		$newDoc = $this->insertScripts($this->params->get('insert_at'), $newDoc, $this->scripts);
-		
-		//echo '<pre>',print_r($newDoc),'</pre>';exit;
 		
 		// set the new document
 		JResponse::setBody($newDoc);
@@ -113,7 +111,7 @@ class  plgSystemBottomjs extends JPlugin
 	 * @since   2.5
 	 */
 	private function insertScripts($where, $doc='', $scripts=array())
-	{
+	{		
 		// if the document or scripts are empty we can't do anything here
 		if($where == '' || empty($scripts))
 			return $doc;
@@ -123,13 +121,13 @@ class  plgSystemBottomjs extends JPlugin
 		$r = '';
 		
 		// if the document is empty we don't need to split it
-		if(!$doc)
+		if($doc != '')
 		{
 			// find the break point in the document
-			$break = strpos($doc, $where);
+			$break = $this->params->get('order') > 0 ? strpos($doc, $where) + strlen($where) : strpos($doc, $where) - 1;
 			
 			// split the string into its left and right components
-			$l = substr($doc, 0, $break-1);
+			$l = substr($doc, 0, $break);
 			$r = substr($doc, $break);
 		}
 		
