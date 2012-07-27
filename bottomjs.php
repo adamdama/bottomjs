@@ -17,6 +17,17 @@ class  plgSystemBottomjs extends JPlugin
 {
 	function onAfterRender()
 	{
+		$app = JFactory::getApplication();
 		
+		if($app->isAdmin())
+			return;
+		
+		// Get the document
+		$doc = JResponse::getBody();
+		
+		
+		
+		// Return the new document
+		JResponse::setBody($doc);
 	}
 }
