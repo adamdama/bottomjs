@@ -17,7 +17,19 @@ class  plgSystemBottomjs extends JPlugin
 {
 	private $scriptStartTag = '<script';
 	private $scriptEndTag = '</script>';
-	
+	// create array to contain scripts
+	private $scripts = array();
+	 
+	/**
+	 * Method to catch the onAfterRender event.
+	 *
+	 * This is where we catch the document before it is output, strip the tags
+	 * and then insert them at the specified point.
+	 *
+	 * @return  boolean  True on success
+	 *
+	 * @since   2.5
+	 */
 	function onAfterRender()
 	{
 		$app = JFactory::getApplication();
@@ -30,9 +42,6 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// set the string offest
 		$offset = 0;
-		
-		// create array to contain scripts
-		$scripts = array();
 		
 		// string to store the document stripped of tags
 		$newDoc = '';
@@ -51,7 +60,7 @@ class  plgSystemBottomjs extends JPlugin
 				break;
 			
 			// add the script to the array
-			$scripts[] = substr($doc, $s, $e - $s);
+			$this->scripts[] = substr($doc, $s, $e - $s);
 			
 			// set $offset to script end point
 			$offset = $e;
@@ -60,11 +69,46 @@ class  plgSystemBottomjs extends JPlugin
 		// add the rest of the document to the output string
 		$newDoc .= substr($doc, $e);
 		
+		// insert the scripts at the specified position
+		$newDoc = $this->insertScripts('</body>', $newDoc, $this->scripts);
+		
 		//echo '<pre>',print_r($newDoc),'</pre>';exit;
 		
-		// return the new document
-		JResponse::setBody($doc);
+		// set the new document
+		JResponse::setBody($newDoc);
+		
+		return true;
+	}
+
+	/**
+	 * Method to catch the insert the scripts into a document.
+	 *
+	 * @param	string	$where the string at which to insert the scripts
+	 * @param	string	$doc the string to insert the scripts into
+	 * @param	string	$scripts the scripts to insert
+	 * 
+	 * @return  string  the processed document
+	 *
+	 * @since   2.5
+	 */
+	private function insertScripts($where, $doc='', $scripts=array())
+	{
+		// if the document or scripts are empty we can't do anything here
+		if($doc == '' || empty($scripts))
+			return $doc;
+		
+		// find the break point in the document
+		$break = strpos($doc, $where);
+		
+		// split the string into its left and right components
+		$l = substr($doc, 0, $break-1);
+		$r = substr($doc, $break);
+		
+		// loop the scripts and add them to the left string
+		foreach($scripts as $s)
+			$l .= $s."\r\n";
+		
+		// return the left and right strings combined
+		return $l.$r;
 	}
 }
-
-ini_set('display_errors', 1);
