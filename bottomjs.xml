@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="2.5" type="plugin" group="system">
+	<name>plg_system_bottomjs</name>
+	<author>Adam Cox</author>
+	<creationDate>July 2012</creationDate>
+	<copyright>Copyright (C) 20012 Open Source Matters. All rights reserved.</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<authorEmail>adamdama@hotmail.com</authorEmail>
+	<authorUrl>www.adamjcox.co.uk</authorUrl>
+	<version>2.5.0</version>
+	<description>PLG_SYSTEM_BOTTOMJS_XML_DESCRIPTION</description>
+	<files>
+		<filename plugin="bottomjs">bottomjs.php</filename>
+		<filename>index.html</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">en-GB.plg_system_bottomjs.ini</language>
+		<language tag="en-GB">en-GB.plg_system_bottomjs.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+			</fieldset>
+		</fields>
+	</config>
+</extension>
