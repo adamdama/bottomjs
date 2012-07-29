@@ -22,11 +22,15 @@
 			<fieldset name="JS">
 				<field
 					name="insert_at"
-					type="text"
-					filter="raw"
+					type="list"
 					label="PLG_SYSTEM_BOTTOMJS_FIELD_INSERT_AT_LABEL"
 					description="PLG_SYSTEM_BOTTOMJS_FIELD INSERT_AT_DESC"
-					default="" />
+					default="eb">
+					<option value="bh">PLG_SYSTEM_BOTTOMJS_OPTION_INSERT_AT_START_HEAD</option>
+					<option value="eh">PLG_SYSTEM_BOTTOMJS_OPTION_INSERT_AT_END_HEAD</option>
+					<option value="bb">PLG_SYSTEM_BOTTOMJS_OPTION_INSERT_AT_START_BODY</option>
+					<option value="eb">PLG_SYSTEM_BOTTOMJS_OPTION_INSERT_AT_END_BODY</option>
+				</field>
 				<field
 					name="order"
 					type="list"

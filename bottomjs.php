@@ -44,7 +44,7 @@ class  plgSystemBottomjs extends JPlugin
 		$newDoc = $this->stripScripts($doc);
 
 		// insert the scripts at the specified position
-		$newDoc = $this->insertScripts($this->params->get('insert_at'), $newDoc, $this->scripts);
+		$newDoc = $this->insertScripts($this->getInsertAt($newDoc), $newDoc, $this->scripts);
 		
 		// set the new document
 		JResponse::setBody($newDoc);
@@ -102,7 +102,7 @@ class  plgSystemBottomjs extends JPlugin
 	/**
 	 * Method to catch the insert the scripts into a document.
 	 *
-	 * @param	string	$where the string at which to insert the scripts
+	 * @param	string	$break the string position at which to insert the scripts
 	 * @param	string	$doc the string to insert the scripts into
 	 * @param	string	$scripts the scripts to insert
 	 * 
@@ -110,10 +110,10 @@ class  plgSystemBottomjs extends JPlugin
 	 *
 	 * @since   2.5
 	 */
-	private function insertScripts($where, $doc='', $scripts=array())
+	private function insertScripts($break, $doc='', $scripts=array())
 	{		
 		// if the document or scripts are empty we can't do anything here
-		if($where == '' || empty($scripts))
+		if($break < 0 || empty($scripts))
 			return $doc;
 		
 		// initialise the string halves
@@ -122,10 +122,7 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// if the document is empty we don't need to split it
 		if($doc != '')
-		{
-			// find the break point in the document
-			$break = $this->params->get('order') > 0 ? strpos($doc, $where) + strlen($where) : strpos($doc, $where) - 1;
-			
+		{			
 			// split the string into its left and right components
 			$l = substr($doc, 0, $break);
 			$r = substr($doc, $break);
@@ -137,5 +134,35 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// return the left and right strings combined
 		return $l.$r;
+	}
+	
+	private function getInsertAt($doc)
+	{
+		//string to hold the translated parameter
+		$where = '';
+		
+		switch($this->params->get('insert_at'))
+		{
+			case 'bh':
+				$o = strpos($doc, '<head');
+				$where = substr($doc, $o, strpos($doc, '>', $o) - $o);
+				break;
+			case 'eh':
+				$where = '</head>';
+				break;
+			case 'bb':
+				$o = strpos($doc, '<body');
+				$where = substr($doc, $o, strpos($doc, '>', $o) - $o);			
+				break;
+			case 'eb':
+			default:				
+				$where = '</body>';
+				break;
+		}
+				
+		// find the break point in the document
+		$break = $this->params->get('order') > 0 ? strpos($doc, $where) + strlen($where) + 1 : strpos($doc, $where) - 1;
+		
+		return $break;
 	}
 }
