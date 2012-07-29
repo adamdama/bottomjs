@@ -24,7 +24,7 @@
 					name="insert_at"
 					type="list"
 					label="PLG_SYSTEM_BOTTOMJS_FIELD_INSERT_AT_LABEL"
-					description="PLG_SYSTEM_BOTTOMJS_FIELD INSERT_AT_DESC"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_INSERT_AT_DESC"
 					default="eb">
 					<option value="bh">PLG_SYSTEM_BOTTOMJS_OPTION_INSERT_AT_START_HEAD</option>
 					<option value="eh">PLG_SYSTEM_BOTTOMJS_OPTION_INSERT_AT_END_HEAD</option>
@@ -35,10 +35,21 @@
 					name="order"
 					type="list"
 					label="PLG_SYSTEM_BOTTOMJS_FIELD_ORDER_LABEL"
-					description="PLG_SYSTEM_BOTTOMJS_FIELD ORDER_DESC"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_ORDER_DESC"
 					default="-1">
 					<option value="-1">PLG_SYSTEM_BOTTOMJS_OPTION_ORDER_BEFORE</option>
 					<option value="1">PLG_SYSTEM_BOTTOMJS_OPTION_ORDER_AFTER</option>
+				</field>
+			</fieldset>
+			<fieldset name="CSS">
+				<field
+					name="move_css"
+					type="radio"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_MOVE_CSS_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_MOVE_CSS_DESC"
+					default="1">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
 				</field>
 			</fieldset>
 		</fields>
