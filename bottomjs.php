@@ -174,9 +174,38 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function scriptEmpty($start, $end)
 	{
-		
+		if($end == $this->getEndOfTag($start) + strlen($this->scriptEndTag))
+			return $this->validAttribute('src',$start);
 	}
 	
+	/*
+	 * TODO Account for escaped ""
+	 * TODO Account for src with ''
+	 */
+	private function validAttribute($attr, $start)
+	{
+		$attrPos = strpos($this->newDoc, $attr, $start);
+		
+		// check property exists
+		if($attrPos === false || $attrPos > $this->getEndOfTag($start))
+			return false;
+		
+		// get value position
+		$valPos = strpos($this->newDoc, '="', $attrPos);
+		
+		if($attrPos + strlen($attr) - $valPos > 1)
+			return false;
+			
+		// check for empty value
+		if($valPos - strpos($this->newDoc,'"', $valPos) == 1)
+			return false;
+		
+		return true;
+	}
+	
+	/*
+	 * TODO Account for escaped >
+	 */
 	private function getEndOfTag($start)
 	{
 		return strpos($this->newDoc, '>', $start);
