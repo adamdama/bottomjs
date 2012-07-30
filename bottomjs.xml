@@ -49,6 +49,13 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
+				<field
+					name="ignore_list"
+					type="textarea"
+					size="60"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_IGNORE_LIST_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_IGNORE_LIST_DESC"
+					default="" />
 			</fieldset>
 			<fieldset name="CSS">
 				<field
