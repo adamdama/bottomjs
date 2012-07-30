@@ -88,15 +88,15 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			//if($this->params->get('ignore_empty'))
-			//{
+			if($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e))
+			{
 				
-			//}
-			//else
-			//{
+			}
+			else
+			{
 				// add the script to the array
 				$this->scripts[] = substr($this->doc, $s, $e - $s);
-			//}
+			}
 			
 			// set $offset to script end point
 			$offset = $e;
@@ -151,14 +151,14 @@ class  plgSystemBottomjs extends JPlugin
 		{
 			case 'bh':
 				$o = strpos($this->newDoc, '<head');
-				$where = substr($this->newDoc, $o, strpos($this->newDoc, '>', $o) - $o);
+				$where = substr($this->newDoc, $o, $this->getEndOfTag($o) - $o);
 				break;
 			case 'eh':
 				$where = '</head>';
 				break;
 			case 'bb':
 				$o = strpos($this->newDoc, '<body');
-				$where = substr($this->newDoc, $o, strpos($this->newDoc, '>', $o) - $o);			
+				$where = substr($this->newDoc, $o, $this->getEndOfTag($o) - $o);			
 				break;
 			case 'eb':
 			default:				
@@ -170,5 +170,15 @@ class  plgSystemBottomjs extends JPlugin
 		$break = $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) + 1 : strpos($this->newDoc, $where) - 1;
 		
 		return $break;
+	}
+	
+	private function scriptEmpty($start, $end)
+	{
+		
+	}
+	
+	private function getEndOfTag($start)
+	{
+		return strpos($this->newDoc, '>', $start);
 	}
 }
