@@ -19,6 +19,11 @@ class  plgSystemBottomjs extends JPlugin
 	private $scriptEndTag = '</script>';
 	// create array to contain scripts
 	private $scripts = array();
+	// create string to contain the original document
+	private $doc = '';
+	// create string to contain the original document
+	private $newDoc = '';
+	
 	 
 	/**
 	 * Method to catch the onAfterRender event.
@@ -38,105 +43,106 @@ class  plgSystemBottomjs extends JPlugin
 			return;
 		
 		// get the document
-		$doc = JResponse::getBody();
+		$this->doc = JResponse::getBody();
 		
-		// string to store the document stripped of tags
-		$newDoc = $this->stripScripts($doc);
+		// if the document is empty there is nothing to do here
+		if($this->doc == '')
+			return;
+		
+		// strip the document of tags
+		if(!$this->stripScripts())
+			exit;
 
 		// insert the scripts at the specified position
-		$newDoc = $this->insertScripts($this->getInsertAt($newDoc), $newDoc, $this->scripts);
+		if(!$this->insertScripts())
+			exit;
 		
 		// set the new document
-		JResponse::setBody($newDoc);
+		JResponse::setBody($this->newDoc);
 		
 		return true;
 	}
 
 	/**
 	 * Method to catch the remove scripts from a document.
-	 *
-	 * @param	string	$doc the string to strip scripts from
 	 * 
-	 * @return  string  the processed document
+	 * @return  boolean  True on success
 	 *
 	 * @since   2.5
 	 */
-	private function stripScripts($doc='')
-	{
-		// if the string is empty there is nothing to strip
-		if($doc == '')
-			return $doc;
-		
-		// empty strip to store the stripped document
-		$newDoc = '';	
-		
+	private function stripScripts()
+	{		
 		// set the string offest
 		$offset = 0;
 		
 		// loop through instances of script tags in the document
-		while($s = strpos($doc, $this->scriptStartTag, $offset))
+		while($s = strpos($this->doc, $this->scriptStartTag, $offset))
 		{				
 			// add the text before the script tag to the new document
-			$newDoc .= substr($doc, $offset, $s - $offset);
+			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			
 			// set closing tag position
-			$e = strpos($doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
+			$e = strpos($this->doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
 			
 			// if end tag is not found stop looping
 			if($e === false)				
 				break;
 			
-			// add the script to the array
-			$this->scripts[] = substr($doc, $s, $e - $s);
+			//if($this->params->get('ignore_empty'))
+			//{
+				
+			//}
+			//else
+			//{
+				// add the script to the array
+				$this->scripts[] = substr($this->doc, $s, $e - $s);
+			//}
 			
 			// set $offset to script end point
 			$offset = $e;
 		}
 		
-		// add the rest of the document to the output string
-		$newDoc .= substr($doc, $e);
+		// if there was nothing to remove then we might not need to continue
+		if(empty($this->scripts))
+			return false;
 		
-		return $newDoc;
+		// add the rest of the document to the output string
+		$this->newDoc .= substr($this->doc, $e);
+		
+		return true;
 	}
 
 	/**
 	 * Method to catch the insert the scripts into a document.
-	 *
-	 * @param	string	$break the string position at which to insert the scripts
-	 * @param	string	$doc the string to insert the scripts into
-	 * @param	string	$scripts the scripts to insert
 	 * 
 	 * @return  string  the processed document
 	 *
 	 * @since   2.5
 	 */
-	private function insertScripts($break, $doc='', $scripts=array())
-	{		
-		// if the document or scripts are empty we can't do anything here
-		if($break < 0 || empty($scripts))
-			return $doc;
+	private function insertScripts()
+	{
+		// set the break point
+		$break = $this->getInsertAt();
+				
+		// if break point is less then 0 then something is wrong
+		if($break < 0)
+			return false;
 		
-		// initialise the string halves
-		$l = '';
-		$r = '';
-		
-		// if the document is empty we don't need to split it
-		if($doc != '')
-		{			
-			// split the string into its left and right components
-			$l = substr($doc, 0, $break);
-			$r = substr($doc, $break);
-		}
+		// split the string into its left and right components
+		$l = substr($this->newDoc, 0, $break);
+		$r = substr($this->newDoc, $break);
 		
 		// loop the scripts and add them to the left string
-		foreach($scripts as $s)
+		foreach($this->scripts as $s)
 			$l .= $s."\r\n";
 		
-		// return the left and right strings combined
-		return $l.$r;
+		// set the new document to the left and right strings combined
+		$this->newDoc =  $l.$r;
+		
+		return true;
 	}
 	
-	private function getInsertAt($doc)
+	private function getInsertAt()
 	{
 		//string to hold the translated parameter
 		$where = '';
@@ -144,15 +150,15 @@ class  plgSystemBottomjs extends JPlugin
 		switch($this->params->get('insert_at'))
 		{
 			case 'bh':
-				$o = strpos($doc, '<head');
-				$where = substr($doc, $o, strpos($doc, '>', $o) - $o);
+				$o = strpos($this->newDoc, '<head');
+				$where = substr($this->newDoc, $o, strpos($this->newDoc, '>', $o) - $o);
 				break;
 			case 'eh':
 				$where = '</head>';
 				break;
 			case 'bb':
-				$o = strpos($doc, '<body');
-				$where = substr($doc, $o, strpos($doc, '>', $o) - $o);			
+				$o = strpos($this->newDoc, '<body');
+				$where = substr($this->newDoc, $o, strpos($this->newDoc, '>', $o) - $o);			
 				break;
 			case 'eb':
 			default:				
@@ -161,7 +167,7 @@ class  plgSystemBottomjs extends JPlugin
 		}
 				
 		// find the break point in the document
-		$break = $this->params->get('order') > 0 ? strpos($doc, $where) + strlen($where) + 1 : strpos($doc, $where) - 1;
+		$break = $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) + 1 : strpos($this->newDoc, $where) - 1;
 		
 		return $break;
 	}
