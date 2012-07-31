@@ -75,9 +75,16 @@ class  plgSystemBottomjs extends JPlugin
 		// set the string offest
 		$offset = 0;
 		
+		// flag for ignored scripts
+		$addPrev = -1;
+		
 		// loop through instances of script tags in the document
 		while($s = strpos($this->doc, $this->scriptStartTag, $offset))
-		{				
+		{
+			// if a script was ignored add it to string
+			if($addPrev != -1)			
+				$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
+							
 			// add the text before the script tag to the new document
 			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			
@@ -90,13 +97,14 @@ class  plgSystemBottomjs extends JPlugin
 			
 			if($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e))
 			{
-				// add the text before the script tag to the new document
-				//$this->newDoc .= substr($this->doc, $offset, $s - $offset);
+				$addPrev = $s;
 			}
 			else
 			{
 				// add the script to the array
 				$this->scripts[] = substr($this->doc, $s, $e - $s);
+				
+				$addPrev = -1;
 			}
 							
 			// set $offset to script end point
@@ -106,6 +114,10 @@ class  plgSystemBottomjs extends JPlugin
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->scripts))
 			return false;
+		
+		// if a script was ignored add it to string
+		if($addPrev != -1)			
+			$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
 		
 		// add the rest of the document to the output string
 		$this->newDoc .= substr($this->doc, $e);
