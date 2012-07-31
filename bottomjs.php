@@ -188,33 +188,30 @@ class  plgSystemBottomjs extends JPlugin
 	private function scriptEmpty($start, $end)
 	{
 		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag) + 1)
-			return !$this->validAttribute('src',$start);
+			return $this->getHTMLAttribute('src',$start,$this->doc) == '';
 	}
 	
 	/*
 	 * TODO Account for escaped ""
-	 * TODO Account for src with ''
+	 * TODO Account for attribute with ''
 	 */
-	private function validAttribute($attr, $start)
+	private function getHTMLAttribute($attr, $start, $doc)
 	{
-		$attrPos = strpos($this->doc, $attr, $start);
+		$attrPos = strpos($doc, $attr, $start);
 		
 		// check property exists
-		if($attrPos === false || $attrPos > $this->getEndOfTag($start, $this->doc))
+		if($attrPos === false || $attrPos > $this->getEndOfTag($start, $doc))
 			return false;
 
 		// get value position
-		$valPos = strpos($this->doc, '="', $attrPos) + 2;
+		$valPos = strpos($doc, '="', $attrPos) + 2;
 		
 		// check for attribute with no =
 		if($attrPos + strlen($attr) - $valPos > 1)
-			return false;
-
-		// check for empty value
-		if(strpos($this->doc,'"', $valPos) - $valPos == 1)
-			return false;
+			return false;		
 		
-		return true;
+		//return the attributes value
+		return substr($doc, $valPos, strpos($doc,'"', $valPos) - $valPos);
 	}
 	
 	/*
@@ -227,7 +224,17 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function inIgnoreList($s, $e)
 	{
+		// set the ignore list
 		$ignoreList = explode("\n", $this->params->get('ignore_list'));
+		
+		// get the script src
+		$src = $this->getHTMLAttribute('src',$start,$this->doc);
+		
+		foreach($ignoreList as $ig)
+		{
+			if($ig == $src)
+				return true;
+		}
 		
 		return false;
 	}
