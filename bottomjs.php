@@ -95,7 +95,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			if($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e))
+			if(($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgoreList($s, $e))
 			{
 				$addPrev = $s;
 			}
@@ -223,5 +223,12 @@ class  plgSystemBottomjs extends JPlugin
 	private function getEndOfTag($start, $doc)
 	{
 		return (int) strpos($doc, '>', $start);
+	}
+	
+	private function inIgnoreList($s, $e)
+	{
+		$ignoreList = explode("\n", $this->params->get('ignore_list'));
+		
+		return false;
 	}
 }
