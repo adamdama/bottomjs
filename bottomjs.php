@@ -90,14 +90,15 @@ class  plgSystemBottomjs extends JPlugin
 			
 			if($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e))
 			{
-				
+				// add the text before the script tag to the new document
+				//$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			}
 			else
 			{
 				// add the script to the array
 				$this->scripts[] = substr($this->doc, $s, $e - $s);
 			}
-			
+							
 			// set $offset to script end point
 			$offset = $e;
 		}
@@ -151,14 +152,14 @@ class  plgSystemBottomjs extends JPlugin
 		{
 			case 'bh':
 				$o = strpos($this->newDoc, '<head');
-				$where = substr($this->newDoc, $o, $this->getEndOfTag($o) - $o);
+				$where = substr($this->newDoc, $o, $this->getEndOfTag($o, $this->newDoc) - $o);
 				break;
 			case 'eh':
 				$where = '</head>';
 				break;
 			case 'bb':
 				$o = strpos($this->newDoc, '<body');
-				$where = substr($this->newDoc, $o, $this->getEndOfTag($o) - $o);			
+				$where = substr($this->newDoc, $o, $this->getEndOfTag($o, $this->newDoc) - $o);			
 				break;
 			case 'eb':
 			default:				
@@ -174,8 +175,8 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function scriptEmpty($start, $end)
 	{
-		if($end == $this->getEndOfTag($start) + strlen($this->scriptEndTag))
-			return $this->validAttribute('src',$start);
+		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag) + 1)
+			return !$this->validAttribute('src',$start);
 	}
 	
 	/*
@@ -184,20 +185,21 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function validAttribute($attr, $start)
 	{
-		$attrPos = strpos($this->newDoc, $attr, $start);
+		$attrPos = strpos($this->doc, $attr, $start);
 		
 		// check property exists
-		if($attrPos === false || $attrPos > $this->getEndOfTag($start))
+		if($attrPos === false || $attrPos > $this->getEndOfTag($start, $this->doc))
 			return false;
-		
+
 		// get value position
-		$valPos = strpos($this->newDoc, '="', $attrPos);
+		$valPos = strpos($this->doc, '="', $attrPos) + 2;
 		
+		// check for attribute with no =
 		if($attrPos + strlen($attr) - $valPos > 1)
 			return false;
-			
+
 		// check for empty value
-		if($valPos - strpos($this->newDoc,'"', $valPos) == 1)
+		if(strpos($this->doc,'"', $valPos) - $valPos == 1)
 			return false;
 		
 		return true;
@@ -206,8 +208,8 @@ class  plgSystemBottomjs extends JPlugin
 	/*
 	 * TODO Account for escaped >
 	 */
-	private function getEndOfTag($start)
+	private function getEndOfTag($start, $doc)
 	{
-		return strpos($this->newDoc, '>', $start);
+		return (int) strpos($doc, '>', $start);
 	}
 }
