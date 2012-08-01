@@ -155,12 +155,14 @@ class  plgSystemBottomjs extends JPlugin
 		return true;
 	}
 	
-	private function getInsertAt()
+	private function getInsertAt($pos=null)
 	{
+		$pos = $pos == null ? $this->params->get('insert_at') : $pos;
+		
 		//string to hold the translated parameter
 		$where = '';
 		
-		switch($this->params->get('insert_at'))
+		switch($pos)
 		{
 			case 'bh':
 				$o = strpos($this->newDoc, '<head');
@@ -230,6 +232,7 @@ class  plgSystemBottomjs extends JPlugin
 		// get the script src
 		$src = $this->getHTMLAttribute('src',$s,$this->doc);
 		
+		// check for the src in the ignore list
 		if(in_array($src, $ignoreList))
 			return true;
 		
