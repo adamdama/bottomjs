@@ -63,12 +63,12 @@ class  plgSystemBottomjs extends JPlugin
 			$this->moveCSS();
 		
 		// strip the document of tags
-		if(!$this->stripScripts())
-			return;
+		//if(!$this->stripScripts())
+			//return;
 
 		// insert the scripts at the specified position
-		if(!$this->insertScripts())
-			return;
+		//if(!$this->insertScripts())
+			//return;
 		
 		// set the new document
 		JResponse::setBody($this->newDoc);
@@ -78,12 +78,12 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function moveCSS()
 	{
-		// // strip the document of tags
+		// strip the document of tags
 		 if(!$this->stripCSS())
 			 return;
-// 
-		// // insert the scripts at the specified position
-		// if(!$this->insertScripts())
+		 
+		// insert the scripts at the specified position
+		// if(!$this->insertCSS())
 			// return;
 	}
 
@@ -190,14 +190,14 @@ class  plgSystemBottomjs extends JPlugin
 			//}
 			//else
 			//{
-				// add the script to the array
-			if($this->getHTMLAttribute('rel', $start, $doc) == 'stylesheet')
+				// add the css to the array
+			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
 				$this->css[] = substr($this->doc, $s, $e - $s);
 				
 			//	$addPrev = -1;
 			//}
 							
-			// set $offset to script end point
+			// set $offset to css end point
 			$offset = $e;
 		}
 		
