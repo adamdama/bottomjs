@@ -49,18 +49,33 @@ class  plgSystemBottomjs extends JPlugin
 		if($this->doc == '')
 			return;
 		
+		// move css if set
+		if($this->params->get('move_css'))
+			$this->moveCSS();
+		
 		// strip the document of tags
 		if(!$this->stripScripts())
-			exit;
+			return;
 
 		// insert the scripts at the specified position
 		if(!$this->insertScripts())
-			exit;
+			return;
 		
 		// set the new document
 		JResponse::setBody($this->newDoc);
 		
 		return true;
+	}
+	
+	private function moveCSS()
+	{
+		// // strip the document of tags
+		// if(!$this->stripScripts())
+			// return;
+// 
+		// // insert the scripts at the specified position
+		// if(!$this->insertScripts())
+			// return;
 	}
 
 	/**
