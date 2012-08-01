@@ -2,6 +2,11 @@
 /**
  * @copyright	Copyright (C) 2012 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * 
+ * TODO move CSS
+ * TODO remove duplicates
+ * TODO minify css/js
+ * TODO ignore css already in top
  */
 
 // no direct access
@@ -17,8 +22,12 @@ class  plgSystemBottomjs extends JPlugin
 {
 	private $scriptStartTag = '<script';
 	private $scriptEndTag = '</script>';
+	private $cssStartTag = '<link';
+	private $cssEndTag = '/>';
 	// create array to contain scripts
 	private $scripts = array();
+	// create array to contain scripts
+	private $css = array();
 	// create string to contain the original document
 	private $doc = '';
 	// create string to contain the original document
@@ -70,8 +79,8 @@ class  plgSystemBottomjs extends JPlugin
 	private function moveCSS()
 	{
 		// // strip the document of tags
-		// if(!$this->stripScripts())
-			// return;
+		 if(!$this->stripCSS())
+			 return;
 // 
 		// // insert the scripts at the specified position
 		// if(!$this->insertScripts())
@@ -137,6 +146,75 @@ class  plgSystemBottomjs extends JPlugin
 		// add the rest of the document to the output string
 		$this->newDoc .= substr($this->doc, $e);
 		
+		// set the doc
+		$this->doc = $this->newDoc;
+		
+		return true;
+	}
+
+	/**
+	 * Method to catch the remove scripts from a document.
+	 * 
+	 * @return  boolean  True on success
+	 *
+	 * @since   2.5
+	 */
+	private function stripCSS()
+	{		
+		// set the string offest
+		$offset = 0;
+		
+		// flag for ignored css
+		$addPrev = -1;
+		
+		// loop through instances of script tags in the document
+		while($s = strpos($this->doc, $this->cssStartTag, $offset))
+		{
+			// if a css was ignored add it to string
+			if($addPrev != -1)			
+				$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
+							
+			// add the text before the css tag to the new document
+			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
+			
+			// set closing tag position
+			$e = strpos($this->doc, $this->cssEndTag, $offset) + strlen($this->cssEndTag);
+			
+			// if end tag is not found stop looping
+			if($e === false)				
+				break;
+			
+			//if(($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
+			//{
+			//	$addPrev = $s;
+			//}
+			//else
+			//{
+				// add the script to the array
+			if($this->getHTMLAttribute('rel', $start, $doc) == 'stylesheet')
+				$this->css[] = substr($this->doc, $s, $e - $s);
+				
+			//	$addPrev = -1;
+			//}
+							
+			// set $offset to script end point
+			$offset = $e;
+		}
+		
+		// if there was nothing to remove then we might not need to continue
+		if(empty($this->css))
+			return false;
+		
+		// if a script was ignored add it to string
+		if($addPrev != -1)			
+			$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
+		
+		// add the rest of the document to the output string
+		$this->newDoc .= substr($this->doc, $e);
+		
+		// set the doc
+		$this->doc = $this->newDoc;
+		
 		return true;
 	}
 
@@ -166,6 +244,9 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// set the new document to the left and right strings combined
 		$this->newDoc =  $l.$r;
+		
+		// set the doc
+		$this->doc = $this->newDoc;
 		
 		return true;
 	}
