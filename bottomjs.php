@@ -95,7 +95,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			if(($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgoreList($s, $e))
+			if(($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
 			{
 				$addPrev = $s;
 			}
@@ -222,19 +222,16 @@ class  plgSystemBottomjs extends JPlugin
 		return (int) strpos($doc, '>', $start);
 	}
 	
-	private function inIgnoreList($s, $e)
+	private function inIgnoreList($s)
 	{
 		// set the ignore list
 		$ignoreList = explode("\n", $this->params->get('ignore_list'));
 		
 		// get the script src
-		$src = $this->getHTMLAttribute('src',$start,$this->doc);
+		$src = $this->getHTMLAttribute('src',$s,$this->doc);
 		
-		foreach($ignoreList as $ig)
-		{
-			if($ig == $src)
-				return true;
-		}
+		if(in_array($src, $ignoreList))
+			return true;
 		
 		return false;
 	}
