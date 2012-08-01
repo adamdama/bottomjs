@@ -58,17 +58,15 @@ class  plgSystemBottomjs extends JPlugin
 		if($this->doc == '')
 			return;
 		
+		// strip the document of tags
+		if($this->stripScripts())
+			// insert the scripts at the specified position
+			if(!$this->insert('scripts'))
+				return;
+		
 		// move css if set
 		if($this->params->get('move_css'))
 			$this->moveCSS();
-		
-		// strip the document of tags
-		//if(!$this->stripScripts())
-			//return;
-
-		// insert the scripts at the specified position
-		//if(!$this->insertScripts())
-			//return;
 		
 		// set the new document
 		JResponse::setBody($this->newDoc);
@@ -83,8 +81,8 @@ class  plgSystemBottomjs extends JPlugin
 			 return;
 		 
 		// insert the scripts at the specified position
-		// if(!$this->insertCSS())
-			// return;
+		if(!$this->insert('css', 'bh'))
+			return;
 	}
 
 	/**
@@ -96,6 +94,8 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function stripScripts()
 	{		
+		$this->newDoc = '';
+		
 		// set the string offest
 		$offset = 0;
 		
@@ -160,7 +160,9 @@ class  plgSystemBottomjs extends JPlugin
 	 * @since   2.5
 	 */
 	private function stripCSS()
-	{		
+	{
+		$this->newDoc = '';
+				
 		// set the string offest
 		$offset = 0;
 		
@@ -225,10 +227,10 @@ class  plgSystemBottomjs extends JPlugin
 	 *
 	 * @since   2.5
 	 */
-	private function insertScripts()
+	private function insert($assets, $insertAt=null)
 	{
 		// set the break point
-		$break = $this->getInsertAt();
+		$break = $this->getInsertAt($insertAt);
 				
 		// if break point is less then 0 then something is wrong
 		if($break < 0)
@@ -239,7 +241,7 @@ class  plgSystemBottomjs extends JPlugin
 		$r = substr($this->newDoc, $break);
 		
 		// loop the scripts and add them to the left string
-		foreach($this->scripts as $s)
+		foreach($this->$assets as $s)
 			$l .= $s."\r\n";
 		
 		// set the new document to the left and right strings combined
