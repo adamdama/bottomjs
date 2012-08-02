@@ -35,9 +35,14 @@ class  plgSystemBottomjs extends JPlugin
 	// create string to contain the original document
 	private $newDoc = '';
 	
+	private $application = null;
+	private $document = null; 
 	
 	function __construct(&$subject, $config = array())
 	{
+		$this->application =& JFactory::getApplication();
+		$this->document =& JFactory::getDocument();
+		
 		parent::__construct($subject, $config);
 	}
 	
@@ -53,20 +58,15 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	function onBeforeRender()
 	{	
-		$app = JFactory::getApplication();
 		// quit if in application is admin
-		if($app->isAdmin())
+		if($this->application->isAdmin())
 			return;
 		
-		// get the document
-		//$this->doc = JResponse::getBody();
-		$app =& JFactory::getApplication();
-		$doc =& JFactory::getDocument();
+		// get the document		
+		$params = array('template' => $this->application->getTemplate(), 'file' => 'index.php', 'directory' => JPATH_THEMES);
+		$caching = ($this->application->getCfg('caching') >= 2) ? true : false;
 		
-		$params = array('template' => $app->getTemplate(), 'file' => 'index.php', 'directory' => JPATH_THEMES);
-		$caching = ($app->getCfg('caching') >= 2) ? true : false;
-		
-		$this->doc = $doc->render($caching, $params);
+		$this->doc = $this->document->render($caching, $params);
 		
 		// if the document is empty there is nothing to do here
 		if($this->doc == '')
@@ -85,6 +85,10 @@ class  plgSystemBottomjs extends JPlugin
 	
 	function onAfterRender()
 	{
+		// quit if in application is admin
+		if($this->application->isAdmin())
+			return;
+		
 		JResponse::setBody($this->newDoc);
 	}
 	
