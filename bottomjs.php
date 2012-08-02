@@ -79,7 +79,7 @@ class  plgSystemBottomjs extends JPlugin
 				return;
 		
 		// move css if set
-		if($this->params->get('move_css'))
+		if((int) $this->params->get('move_css'))
 			$this->moveCSS();
 	}
 	
@@ -133,7 +133,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			if(($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
+			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
 			{
 				$addPrev = $s;
 			}
@@ -200,7 +200,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			//if(($this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
+			//if(((int )$this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
 			//{
 			//	$addPrev = $s;
 			//}
@@ -269,7 +269,7 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function getInsertAt($pos=null)
 	{
-		$pos = $pos == null ? $this->params->get('insert_at') : $pos;
+		$pos = $pos == null ? (string) $this->params->get('insert_at') : $pos;
 		
 		//string to hold the translated parameter
 		$where = '';
@@ -294,7 +294,7 @@ class  plgSystemBottomjs extends JPlugin
 		}
 				
 		// find the break point in the document
-		$break = $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) + 1 : strpos($this->newDoc, $where) - 1;
+		$break = (int) $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) + 1 : strpos($this->newDoc, $where) - 1;
 		
 		return $break;
 	}
@@ -339,7 +339,7 @@ class  plgSystemBottomjs extends JPlugin
 	private function inIgnoreList($s)
 	{
 		// set the ignore list
-		$ignoreList = explode("\n", $this->params->get('ignore_list'));
+		$ignoreList = explode("\n", (string) $this->params->get('ignore_list'));
 		
 		// get the script src
 		$src = $this->getHTMLAttribute('src',$s,$this->doc);
