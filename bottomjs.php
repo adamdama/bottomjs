@@ -3,10 +3,12 @@
  * @copyright	Copyright (C) 2012 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * 
- * TODO move CSS
  * TODO remove duplicates
  * TODO minify css/js
  * TODO ignore css already in top
+ * TODO ignore empty css hrefs
+ * TODO single jquery or moo tools
+ * TODO no moo tools front end
  */
 
 // no direct access
@@ -33,7 +35,12 @@ class  plgSystemBottomjs extends JPlugin
 	// create string to contain the original document
 	private $newDoc = '';
 	
-	 
+	
+	function __construct(&$subject, $config = array())
+	{
+		parent::__construct($subject, $config);
+	}
+	
 	/**
 	 * Method to catch the onAfterRender event.
 	 *
@@ -44,15 +51,22 @@ class  plgSystemBottomjs extends JPlugin
 	 *
 	 * @since   2.5
 	 */
-	function onAfterRender()
-	{		
+	function onBeforeRender()
+	{	
 		$app = JFactory::getApplication();
 		// quit if in application is admin
 		if($app->isAdmin())
 			return;
 		
 		// get the document
-		$this->doc = JResponse::getBody();
+		//$this->doc = JResponse::getBody();
+		$app =& JFactory::getApplication();
+		$doc =& JFactory::getDocument();
+		
+		$params = array('template' => $app->getTemplate(), 'file' => 'index.php', 'directory' => JPATH_THEMES);
+		$caching = ($app->getCfg('caching') >= 2) ? true : false;
+		
+		$this->doc = $doc->render($caching, $params);
 		
 		// if the document is empty there is nothing to do here
 		if($this->doc == '')
@@ -67,11 +81,11 @@ class  plgSystemBottomjs extends JPlugin
 		// move css if set
 		if($this->params->get('move_css'))
 			$this->moveCSS();
-		
-		// set the new document
+	}
+	
+	function onAfterRender()
+	{
 		JResponse::setBody($this->newDoc);
-		
-		return true;
 	}
 	
 	private function moveCSS()
