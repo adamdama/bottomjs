@@ -78,7 +78,7 @@ class  plgSystemBottomjs extends JPlugin
 			return;
 		
 		// strip the document of tags
-		if($this->stripScripts())
+		if($this->params->get('move_js') && $this->stripScripts())
 		{
 			if($this->params->get('minify_js'))
 				$this->minify('scripts');
