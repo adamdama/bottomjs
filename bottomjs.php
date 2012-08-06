@@ -255,16 +255,8 @@ class  plgSystemBottomjs extends JPlugin
 		if($break < 0)
 			return false;
 		
-		// split the string into its left and right components
-		$l = substr($this->newDoc, 0, $break);
-		$r = substr($this->newDoc, $break);
-		
-		// loop the scripts and add them to the left string
-		foreach($this->$assets as $s)
-			$l .= $s."\r\n";
-		
-		// set the new document to the left and right strings combined
-		$this->newDoc =  $l.$r;
+		// split the string into its left and right components implode the scripts and add them to the left string set the new document to the left and right strings combined
+		$this->newDoc = substr($this->newDoc, 0, $break) . implode("\r\n", $this->$assets) . substr($this->newDoc, $break);
 		
 		// set the doc
 		$this->doc = $this->newDoc;
@@ -354,5 +346,10 @@ class  plgSystemBottomjs extends JPlugin
 			return true;
 		
 		return false;
+	}
+	
+	private function minify($assets)
+	{
+		
 	}
 }
