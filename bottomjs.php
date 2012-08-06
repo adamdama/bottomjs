@@ -45,6 +45,9 @@ class  plgSystemBottomjs extends JPlugin
 	
 	function __construct(&$subject, $config = array())
 	{
+		define('TYPE_EXTERNAL', 1);
+		define('TYPE_INLINE', 0);
+		
 		$this->application =& JFactory::getApplication();
 		$this->document =& JFactory::getDocument();
 		
@@ -138,14 +141,17 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
+			// flag for script empty
+			$scriptEmpty = $this->scriptEmpty($s, $e);
+			
+			if(((int) $this->params->get('ignore_empty') && $scriptEmpty) || $this->inIgnoreList($s))
 			{
 				$addPrev = $s;
 			}
 			else
 			{
 				// add the script to the array
-				$this->scripts[] = substr($this->doc, $s, $e - $s);
+				$this->scripts[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => ($scriptEmpty ? TYPE_EXTERNAL : TYPE_INLINE));
 				
 				$addPrev = -1;
 			}
@@ -213,7 +219,7 @@ class  plgSystemBottomjs extends JPlugin
 			//{
 				// add the css to the array
 			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
-				$this->css[] = substr($this->doc, $s, $e - $s);
+				$this->css[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => TYPE_EXTERNAL);
 				
 			//	$addPrev = -1;
 			//}
@@ -255,8 +261,10 @@ class  plgSystemBottomjs extends JPlugin
 		if($break < 0)
 			return false;
 		
+		$getString = create_function('$value', 'return $value[\'string\'];');
+		
 		// split the string into its left and right components implode the scripts and add them to the left string set the new document to the left and right strings combined
-		$this->newDoc = substr($this->newDoc, 0, $break) . implode("\r\n", $this->$assets) . substr($this->newDoc, $break);
+		$this->newDoc = substr($this->newDoc, 0, $break) . implode("\r\n", array_map($getString, $this->$assets)) . substr($this->newDoc, $break);
 		
 		// set the doc
 		$this->doc = $this->newDoc;
