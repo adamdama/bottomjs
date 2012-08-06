@@ -57,6 +57,15 @@
 					label="PLG_SYSTEM_BOTTOMJS_FIELD_IGNORE_LIST_LABEL"
 					description="PLG_SYSTEM_BOTTOMJS_FIELD_IGNORE_LIST_DESC"
 					default="" />
+				<field
+					name="minify_js"
+					type="radio"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_MINIFY_JS_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_MINIFY_JS_DESC"
+					default="1">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
 			</fieldset>
 			<fieldset name="CSS">
 				<field
@@ -64,6 +73,15 @@
 					type="radio"
 					label="PLG_SYSTEM_BOTTOMJS_FIELD_MOVE_CSS_LABEL"
 					description="PLG_SYSTEM_BOTTOMJS_FIELD_MOVE_CSS_DESC"
+					default="1">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field
+					name="minify_css"
+					type="radio"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_MINIFY_CSS_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_MINIFY_CSS_DESC"
 					default="1">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
