@@ -9,7 +9,9 @@
  * TODO ignore empty css hrefs
  * TODO single jquery or moo tools
  * TODO no moo tools front end
+ * TODO expose minify settings using fopen
  */
+ 
 
 // no direct access
 defined('_JEXEC') or die;
@@ -34,6 +36,8 @@ class  plgSystemBottomjs extends JPlugin
 	private $doc = '';
 	// create string to contain the original document
 	private $newDoc = '';
+	
+	private $minifyURL = '/libraries/minify/?f=';
 	
 	private $application = null;
 	private $document = null; 
