@@ -10,6 +10,7 @@
  * TODO single jquery or moo tools
  * TODO no moo tools front end
  * TODO expose minify settings using fopen
+ * TODO minify tags and external, or just tags
  */
  
 
@@ -78,9 +79,14 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// strip the document of tags
 		if($this->stripScripts())
+		{
+			if($this->params->get('minify_js'))
+				$this->minify('scripts');
+			
 			// insert the scripts at the specified position
 			if(!$this->insert('scripts'))
 				return;
+		}
 		
 		// move css if set
 		if((int) $this->params->get('move_css'))

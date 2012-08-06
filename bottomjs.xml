@@ -21,6 +21,15 @@
 		<fields name="params">
 			<fieldset name="JS">
 				<field
+					name="move_js"
+					type="radio"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_MOVE_JS_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_MOVE_JS_DESC"
+					default="1">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field
 					name="insert_at"
 					type="list"
 					label="PLG_SYSTEM_BOTTOMJS_FIELD_INSERT_AT_LABEL"
