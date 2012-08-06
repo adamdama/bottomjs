@@ -84,7 +84,9 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// move css if set
 		if((int) $this->params->get('move_css'))
-			$this->moveCSS();
+			if($this->stripCSS())
+				if(!$this->insert('css', 'bh'))
+					return;
 	}
 	
 	function onAfterRender()
@@ -94,17 +96,6 @@ class  plgSystemBottomjs extends JPlugin
 			return;
 		
 		JResponse::setBody($this->newDoc);
-	}
-	
-	private function moveCSS()
-	{
-		// strip the document of tags
-		 if(!$this->stripCSS())
-			 return;
-		 
-		// insert the scripts at the specified position
-		if(!$this->insert('css', 'bh'))
-			return;
 	}
 
 	/**
