@@ -11,6 +11,7 @@
  * TODO no moo tools front end
  * TODO expose minify settings using fopen
  * TODO minify tags and external, or just tags
+ * TODO script empty should check for whitespace
  */
  
 
@@ -33,6 +34,8 @@ class  plgSystemBottomjs extends JPlugin
 	private $scripts = array();
 	// create array to contain scripts
 	private $css = array();
+	// 
+	private $preMinify = array();
 	// create string to contain the original document
 	private $doc = '';
 	// create string to contain the original document
@@ -141,17 +144,14 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			// flag for script empty
-			$scriptEmpty = $this->scriptEmpty($s, $e);
-			
-			if(((int) $this->params->get('ignore_empty') && $scriptEmpty) || $this->inIgnoreList($s))
+			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
 			{
 				$addPrev = $s;
 			}
 			else
 			{
 				// add the script to the array
-				$this->scripts[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => ($scriptEmpty ? TYPE_EXTERNAL : TYPE_INLINE));
+				$this->scripts[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => ($this->scriptEmpty($s, $e, true) ? TYPE_EXTERNAL : TYPE_INLINE));
 				
 				$addPrev = -1;
 			}
@@ -173,6 +173,8 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// set the doc
 		$this->doc = $this->newDoc;
+		
+		$this->document->_scripts = array();
 		
 		return true;
 	}
@@ -211,18 +213,9 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			//if(((int )$this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
-			//{
-			//	$addPrev = $s;
-			//}
-			//else
-			//{
-				// add the css to the array
+			// add the css to the array
 			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
 				$this->css[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => TYPE_EXTERNAL);
-				
-			//	$addPrev = -1;
-			//}
 							
 			// set $offset to css end point
 			$offset = $e;
@@ -304,10 +297,12 @@ class  plgSystemBottomjs extends JPlugin
 		return $break;
 	}
 	
-	private function scriptEmpty($start, $end)
+	private function scriptEmpty($start, $end, $ignoreSource = false)
 	{
 		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag) + 1)
-			return $this->getHTMLAttribute('src',$start,$this->doc) == '';
+			return $ignoreSource ? true : $this->getHTMLAttribute('src',$start,$this->doc) == '';
+			
+		return false;
 	}
 	
 	/*
@@ -358,6 +353,27 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function minify($assets)
 	{
+		$list =& $this->$assets;
 		
+		$this->preMinify[$assets] = $list;
+		
+		$addScript = false;
+		$url = JURI::base(true) . $this->minifyURL;
+		
+		foreach($list as $key => $string)
+		{
+			if($string['type'] == TYPE_EXTERNAL)
+			{
+				$addScript = true;
+				$url .= urlencode($this->getHTMLAttribute('src', 0, $string['string'])).',';
+				unset($list[$key]);
+			}
+		}
+		
+		if(!$addScript)
+			return;
+		
+		$url = substr($url, 0, strlen($url) -1);		
+		$list[] = array('string' => '<script type="text/javascript" src="'.$url.'" defer="defer"></script>', 'type' => TYPE_EXTERNAL);
 	}
 }
