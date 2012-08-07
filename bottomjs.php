@@ -373,7 +373,10 @@ class  plgSystemBottomjs extends JPlugin
 		if(!$addScript)
 			return;
 		
-		$url = substr($url, 0, strlen($url) -1);		
-		$list[] = array('string' => '<script type="text/javascript" src="'.$url.'" defer="defer"></script>', 'type' => TYPE_EXTERNAL);
+		$url = substr($url, 0, strlen($url) -1);
+		
+		$string = $assets == 'scripts' ? '<script type="text/javascript" src="'.$url.'" defer="defer"></script>' : '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
+			
+		$list[] = array('string' => $string, 'type' => TYPE_EXTERNAL);
 	}
 }
