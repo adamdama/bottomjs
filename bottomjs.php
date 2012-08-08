@@ -95,10 +95,15 @@ class  plgSystemBottomjs extends JPlugin
 		}
 		
 		// move css if set
-		if((int) $this->params->get('move_css'))
-			if($this->stripCSS())
-				if(!$this->insert('css', 'bh'))
-					return;
+		if((int) $this->params->get('move_css') && $this->stripCSS())
+		{
+			if((int) $this->params->get('minify_css'))
+				$this->minify('css');
+			
+			// insert the scripts at the specified position
+			if(!$this->insert('css', 'bh'))
+				return;
+		}
 	}
 	
 	function onAfterRender()
@@ -365,7 +370,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($string['type'] == TYPE_EXTERNAL)
 			{
 				$addScript = true;
-				$url .= urlencode($this->getHTMLAttribute('src', 0, $string['string'])).',';
+				$url .= $this->getHTMLAttribute($assets == 'scripts' ? 'src' : 'href', 0, $string['string']).',';
 				unset($list[$key]);
 			}
 		}
