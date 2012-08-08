@@ -12,7 +12,9 @@
  * TODO expose minify settings using fopen
  * TODO minify tags and external, or just tags
  * TODO script empty should check for whitespace
+ * TODO make sure cross domain files are not minified
  */
+ 
  
 
 // no direct access
