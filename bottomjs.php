@@ -50,7 +50,8 @@ class  plgSystemBottomjs extends JPlugin
 	
 	function __construct(&$subject, $config = array())
 	{
-		define('TYPE_EXTERNAL', 1);
+		define('TYPE_EXTERNAL', 2);
+		define('TYPE_INTERNAL', 1);
 		define('TYPE_INLINE', 0);
 		
 		$this->application =& JFactory::getApplication();
@@ -157,8 +158,11 @@ class  plgSystemBottomjs extends JPlugin
 			}
 			else
 			{
+				$string = substr($this->doc, $s, $e - $s);
+				$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
+				
 				// add the script to the array
-				$this->scripts[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => ($this->scriptEmpty($s, $e, true) ? TYPE_EXTERNAL : TYPE_INLINE));
+				$this->scripts[] = array('string' => $string, 'type' => $type);
 				
 				$addPrev = -1;
 			}
@@ -222,7 +226,12 @@ class  plgSystemBottomjs extends JPlugin
 			
 			// add the css to the array
 			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
-				$this->css[] = array('string' => substr($this->doc, $s, $e - $s), 'type' => TYPE_EXTERNAL);
+			{
+				$string = substr($this->doc, $s, $e - $s);
+				$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
+				
+				$this->css[] = array('string' => $string, 'type' => $type);	
+			}
 							
 			// set $offset to css end point
 			$offset = $e;
@@ -369,7 +378,7 @@ class  plgSystemBottomjs extends JPlugin
 		
 		foreach($list as $key => $string)
 		{
-			if($string['type'] == TYPE_EXTERNAL)
+			if($string['type'] == TYPE_INTERNAL)
 			{
 				$addScript = true;
 				$url .= $this->getHTMLAttribute($assets == 'scripts' ? 'src' : 'href', 0, $string['string']).',';
@@ -384,6 +393,27 @@ class  plgSystemBottomjs extends JPlugin
 		
 		$string = $assets == 'scripts' ? '<script type="text/javascript" src="'.$url.'" defer="defer"></script>' : '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
 			
-		$list[] = array('string' => $string, 'type' => TYPE_EXTERNAL);
+		array_unshift($list, array('string' => $string, 'type' => TYPE_INTERNAL));
+	}
+	
+	private function isExternal($string, $type)
+	{
+		$attr = $type == 'script' ? 'src' : 'href';
+		
+		$val = $this->getHTMLAttribute($attr, 0, $string);
+		
+		$prots = array('http','https','//');
+		$external = false;
+		
+		foreach($prots as $prot)
+		{
+			if(strpos($val, $prot) === 0)
+			{
+				$external = true;
+				break;
+			}
+		}
+		
+		return $external;
 	}
 }
