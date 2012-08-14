@@ -32,6 +32,8 @@ class  plgSystemBottomjs extends JPlugin
 	private $scriptEndTag = '</script>';
 	private $cssStartTag = '<link';
 	private $cssEndTag = '/>';
+	private $commentStartTag = '<!--';
+	private $commentEndTag = '-->';
 	// create array to contain scripts
 	private $scripts = array();
 	// create array to contain scripts
@@ -423,6 +425,8 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function isInComment($s, $e, $doc)
 	{
+		
+		
 		return 'false';
 	}
 }
