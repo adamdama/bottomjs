@@ -416,4 +416,9 @@ class  plgSystemBottomjs extends JPlugin
 		
 		return $external;
 	}
+	
+	private function isInComment($s, $e, $doc)
+	{
+		
+	}
 }
