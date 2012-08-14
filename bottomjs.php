@@ -145,7 +145,7 @@ class  plgSystemBottomjs extends JPlugin
 			// add the text before the script tag to the new document
 			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			
-			// set closing tag position
+			// set closing tag position TODO use getEndOfTag
 			$e = strpos($this->doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
 			
 			// if end tag is not found stop looping
@@ -217,12 +217,14 @@ class  plgSystemBottomjs extends JPlugin
 			// add the text before the css tag to the new document
 			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			
-			// set closing tag position
+			// set closing tag position TODO use getEndOfTag
 			$e = strpos($this->doc, $this->cssEndTag, $offset) + strlen($this->cssEndTag);
 			
 			// if end tag is not found stop looping
 			if($e === false)				
 				break;
+			
+			
 			
 			// add the css to the array
 			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
