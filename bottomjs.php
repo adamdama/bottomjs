@@ -423,10 +423,14 @@ class  plgSystemBottomjs extends JPlugin
 		return $external;
 	}
 	
-	private function isInComment($s, $e, $doc)
+	private function isInComment($s, $e, $string)
 	{
+		$before = substr($string, 0, $s);
+		$open = strrpos($before, $this->commentStartTag);
 		
+		if($open === false)
+			return false;
 		
-		return 'false';
+		return true;
 	}
 }
