@@ -224,7 +224,9 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			
+			echo substr($this->doc, $s, $e - $s);
+			echo $this->isInComment($s, $e, $this->doc);
+			exit;
 			
 			// add the css to the array
 			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
@@ -421,6 +423,6 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function isInComment($s, $e, $doc)
 	{
-		
+		return 'false';
 	}
 }
