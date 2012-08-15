@@ -241,7 +241,7 @@ class  plgSystemBottomjs extends JPlugin
 			// set $offset to css end point
 			$offset = $e;
 		}
-			//exit;
+			exit;
 		
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->css))
@@ -431,9 +431,20 @@ class  plgSystemBottomjs extends JPlugin
 		if($open === false)
 			return false;
 		
-		$close = strpos($before, $open);
+		$close = strpos($before, $this->commentEndTag, $open);
+		
 		if($close !== false)
 			return false;
+		
+		/*$after = substr($string, $e);		
+		$close = strpos($after, $this->commentEndTag);
+		
+		if($close !== false)
+			return false;
+			
+		$open = strrpos($after, $this->commentStartTag, $close);
+		if($open !== false)
+			return false;*/
 		
 		return true;
 	}
