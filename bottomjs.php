@@ -148,6 +148,7 @@ class  plgSystemBottomjs extends JPlugin
 			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			
 			// set closing tag position TODO use getEndOfTag
+			$e = $this->getEndOfTag($s, $this->doc, $this->scriptEndTag);
 			$e = strpos($this->doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
 			
 			// if end tag is not found stop looping
@@ -241,7 +242,7 @@ class  plgSystemBottomjs extends JPlugin
 			// set $offset to css end point
 			$offset = $e;
 		}
-			exit;
+		//	exit;
 		
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->css))
