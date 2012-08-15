@@ -220,15 +220,14 @@ class  plgSystemBottomjs extends JPlugin
 			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
 			
 			// set closing tag position TODO use getEndOfTag
-			$e = strpos($this->doc, $this->cssEndTag, $offset) + strlen($this->cssEndTag);
+			$e = $this->getEndOfTag($s, $this->doc);
 			
 			// if end tag is not found stop looping
 			if($e === false)				
 				break;
 			
-			echo substr($this->doc, $s, $e - $s);
+			echo substr($this->doc, $s, $e - $s)."\n\n\n\n\n\n";
 			echo $this->isInComment($s, $e, $this->doc);
-			exit;
 			
 			// add the css to the array
 			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
@@ -242,6 +241,7 @@ class  plgSystemBottomjs extends JPlugin
 			// set $offset to css end point
 			$offset = $e;
 		}
+			//exit;
 		
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->css))
@@ -314,7 +314,7 @@ class  plgSystemBottomjs extends JPlugin
 		}
 				
 		// find the break point in the document
-		$break = (int) $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) + 1 : strpos($this->newDoc, $where) - 1;
+		$break = (int) $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) : strpos($this->newDoc, $where);
 		
 		return $break;
 	}
@@ -353,9 +353,9 @@ class  plgSystemBottomjs extends JPlugin
 	/*
 	 * TODO Account for escaped >
 	 */
-	private function getEndOfTag($start, $doc)
+	private function getEndOfTag($start, $doc, $endtag='>')
 	{
-		return (int) strpos($doc, '>', $start);
+		return (int) strpos($doc, $endtag, $start) + strlen($endtag);
 	}
 	
 	private function inIgnoreList($s)
@@ -429,6 +429,10 @@ class  plgSystemBottomjs extends JPlugin
 		$open = strrpos($before, $this->commentStartTag);
 		
 		if($open === false)
+			return false;
+		
+		$close = strpos($before, $open);
+		if($close !== false)
 			return false;
 		
 		return true;
