@@ -267,11 +267,8 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			echo substr($this->doc, $s, $e - $s)."\n\n\n\n\n\n";
-			echo $this->isInComment($s, $e, $this->doc);
-			
 			// add the css to the array
-			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet')
+			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet' && !$this->isInComment($s, $e, $this->doc))
 			{
 				$string = substr($this->doc, $s, $e - $s);
 				$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
