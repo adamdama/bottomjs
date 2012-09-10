@@ -164,7 +164,7 @@ class  plgSystemBottomjs extends JPlugin
 				$string = substr($this->doc, $s, $e - $s);
 				$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
 				
-				if((int) $this->params->get('resolve_duplicates', 1))
+				if((int) $this->params->get('resolve_duplicates', 0))
 				{
 					//check to see if the script is already in the array
 					$found = false;
@@ -361,7 +361,7 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function scriptEmpty($start, $end, $ignoreSource = false)
 	{
-		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag) + 1)
+		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag))
 			return $ignoreSource ? true : $this->getHTMLAttribute('src',$start,$this->doc) == '';
 			
 		return false;
