@@ -283,7 +283,11 @@ class  plgSystemBottomjs extends JPlugin
 				
 				$this->css[] = array('string' => $string, 'type' => $type);	
 			}
-							
+			elseif($this->inComment($s, $e, $this->doc))
+			{
+				$addPrev = $s;
+			}
+						
 			// set $offset to css end point
 			$offset = $e;
 		}
