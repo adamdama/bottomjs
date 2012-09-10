@@ -282,6 +282,7 @@ class  plgSystemBottomjs extends JPlugin
 				$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
 				
 				$this->css[] = array('string' => $string, 'type' => $type);	
+				$addPrev = -1;
 			}
 			elseif($this->inComment($s, $e, $this->doc))
 			{
