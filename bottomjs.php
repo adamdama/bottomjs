@@ -155,7 +155,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s))
+			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s) || $this->inComment($s, $e, $this->doc))
 			{
 				$addPrev = $s;
 			}
