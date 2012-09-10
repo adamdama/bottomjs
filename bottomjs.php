@@ -149,7 +149,7 @@ class  plgSystemBottomjs extends JPlugin
 			
 			// set closing tag position TODO use getEndOfTag
 			$e = $this->getEndOfTag($s, $this->doc, $this->scriptEndTag);
-			$e = strpos($this->doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
+			//$e = strpos($this->doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
 			
 			// if end tag is not found stop looping
 			if($e === false)				
@@ -170,14 +170,9 @@ class  plgSystemBottomjs extends JPlugin
 					$found = $this->resolveDuplicates($string);
 					
 					if(!$found)
-					{
 						$this->scripts[] = array('string' => $string, 'type' => $type);
-						$addPrev = -1;
-					}
-					else
-					{
-						$addPrev = -1;						
-					}	
+					
+					$addPrev = -1;
 				}
 				else
 				{
@@ -374,7 +369,7 @@ class  plgSystemBottomjs extends JPlugin
 	private function scriptEmpty($start, $end, $ignoreSource = false)
 	{
 		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag))
-			return $ignoreSource ? true : $this->getHTMLAttribute('src',$start,$this->doc) == '';
+			return $ignoreSource ? true : $this->getHTMLAttribute('src', $start, $this->doc) == '';
 			
 		return false;
 	}
@@ -419,7 +414,7 @@ class  plgSystemBottomjs extends JPlugin
 		$src = $this->getHTMLAttribute('src',$s,$this->doc);
 		
 		// check for the src in the ignore list
-		if(in_array($src, $ignoreList))
+		if($src !== false && in_array($src, $ignoreList))
 			return true;
 		
 		return false;
