@@ -276,7 +276,7 @@ class  plgSystemBottomjs extends JPlugin
 				break;
 			
 			// add the css to the array
-			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet' && !$this->isInComment($s, $e, $this->doc))
+			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet' && !$this->inComment($s, $e, $this->doc))
 			{
 				$string = substr($this->doc, $s, $e - $s);
 				$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
@@ -470,7 +470,7 @@ class  plgSystemBottomjs extends JPlugin
 		return $external;
 	}
 	
-	private function isInComment($s, $e, $string)
+	private function inComment($s, $e, $string)
 	{
 		$before = substr($string, 0, $s);
 		$open = strrpos($before, $this->commentStartTag);
