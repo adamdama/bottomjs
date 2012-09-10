@@ -328,6 +328,7 @@ class  plgSystemBottomjs extends JPlugin
 	
 	private function getInsertAt($pos=null)
 	{
+		$order = $pos == null ? 1 : null;
 		$pos = $pos == null ? (string) $this->params->get('insert_at') : $pos;
 		
 		//string to hold the translated parameter
@@ -353,7 +354,7 @@ class  plgSystemBottomjs extends JPlugin
 		}
 				
 		// find the break point in the document
-		$break = (int) $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) : strpos($this->newDoc, $where);
+		$break = !$order || (int) $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) : strpos($this->newDoc, $where);
 		
 		return $break;
 	}
