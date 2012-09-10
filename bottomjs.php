@@ -164,34 +164,10 @@ class  plgSystemBottomjs extends JPlugin
 				$string = substr($this->doc, $s, $e - $s);
 				$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
 				
-				if((int) $this->params->get('resolve_duplicates', 0))
+				if((int) $this->params->get('resolve_duplicates', 1))
 				{
 					//check to see if the script is already in the array
-					$found = false;
-					
-					// try an exact match first
-					if(!in_array($string, $this->scripts))
-						$found = true;
-					
-					// check for same external scripts, tag attributes could be in a different order
-					if(!$found)
-					{
-						$strSrc = $this->getHTMLAttribute('src', 0, $string);
-						//if the string doesnt have a source we cant checck against it
-						if($strSrc !== false)
-						{						
-							foreach($this->scripts as $script)
-							{
-								$src = $this->getHTMLAttribute('src', 0, $script);
-								
-								if($src == $strSrc)
-								{
-									$found = true;
-									break;
-								}
-							}
-						}
-					}
+					$found = $this->resolveDuplicates($string);
 					
 					if(!$found)
 					{
@@ -200,7 +176,7 @@ class  plgSystemBottomjs extends JPlugin
 					}
 					else
 					{
-						$addPrev = $s;						
+						$addPrev = $e;						
 					}	
 				}
 				else
@@ -232,6 +208,37 @@ class  plgSystemBottomjs extends JPlugin
 		$this->document->_scripts = array();
 		
 		return true;
+	}
+
+	private function resolveDuplicates($string)
+	{
+		$found = false;
+		
+		// try an exact match first
+		if(count($this->scripts) && in_array($string, $this->scripts))
+			$found = true;
+		
+		// check for same external scripts, tag attributes could be in a different order
+		if(!$found)
+		{
+			$strSrc = $this->getHTMLAttribute('src', 0, $string);
+			//if the string doesnt have a source we cant checck against it
+			if($strSrc !== false)
+			{						
+				foreach($this->scripts as $script)
+				{
+					$src = $this->getHTMLAttribute('src', 0, $script['string']);
+					
+					if($src == $strSrc)
+					{
+						$found = true;
+						break;
+					}
+				}
+			}
+		}
+		
+		return $found;
 	}
 
 	/**
