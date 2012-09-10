@@ -176,7 +176,7 @@ class  plgSystemBottomjs extends JPlugin
 					}
 					else
 					{
-						$addPrev = $e;						
+						$addPrev = -1;						
 					}	
 				}
 				else
