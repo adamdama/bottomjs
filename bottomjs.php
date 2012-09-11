@@ -3,8 +3,7 @@
  * @copyright	Copyright (C) 2012 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * 
- * TODO remove duplicates
- * TODO minify css/js
+ * TODO minify css
  * TODO ignore css already in top
  * TODO ignore empty css hrefs
  * TODO single jquery or moo tools
