@@ -13,7 +13,9 @@
  * TODO minify tags and external, or just tags
  * TODO script empty should check for whitespace
  * TODO make sure cross domain files are not minified
+ * TODO get local absolute urls and make them rlative
  */
+
  
  
 
