@@ -188,7 +188,10 @@ class  plgSystemBottomjs extends JPlugin
 				
 				// if type is external check that it is not local
 				if($type == TYPE_EXTERNAL)
+				{
 					$string = $this->resolveLocalURL($string);
+					$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
+				}
 				
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
