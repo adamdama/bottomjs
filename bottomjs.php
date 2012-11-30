@@ -232,24 +232,17 @@ class  plgSystemBottomjs extends JPlugin
 	 * @param {string} string the string to be checked against the stored scripts
 	 */
 	private function resolveDuplicates($string)
-	{
-		// if there are no scripts in the array the string passed cannot be a duplicate
-		if(!count($this->scripts))
-			return;
-		
+	{		
 		// assume the script is not a duplicate until it is found
 		$found = false;
 		
+		// if there are no scripts in the array the string passed cannot be a duplicate
+		if(!count($this->scripts))
+			return $found;
+		
 		// try an exact match first
-		// loop over scripts to see if the string property of the element arrays matches the string passed
-		foreach($this->scripts as $script)
-		{
-			if($script['string'] == $string)
-			{
-				$found = true;
-				break;
-			}
-		}
+		if($this->inScripts($string))
+			$found = true;
 		
 		// check for same external scripts source address, tag attributes could be in a different order
 		if(!$found)
@@ -456,6 +449,23 @@ class  plgSystemBottomjs extends JPlugin
 			return true;
 		
 		return false;
+	}
+	
+	private function inScripts($string)
+	{
+		$found = false;
+		
+		// loop over scripts to see if the string property of the element arrays matches the string passed
+		foreach($this->scripts as $script)
+		{
+			if($script['string'] == $string)
+			{
+				$found = true;
+				break;
+			}
+		}
+		
+		return $found;
 	}
 	
 	private function minify($assets)
