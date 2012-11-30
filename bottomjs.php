@@ -183,7 +183,12 @@ class  plgSystemBottomjs extends JPlugin
 			else
 			{
 				$string = substr($this->doc, $s, $e - $s);
+				// set the scripts source type
 				$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
+				
+				// if type is external check that it is not local
+				if($type == TYPE_EXTERNAL)
+					$string = $this->resolveLocalURL($string);
 				
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
@@ -266,6 +271,16 @@ class  plgSystemBottomjs extends JPlugin
 		
 		return $found;
 	}
+	
+	/**
+	 * Method to resolve a local absolute URL into a relative URL
+	 * 
+	 * @param {string} string the script tag that needs to be checked for resolution
+	 */
+	 private function resolveLocalURL($string)
+	 {
+	 	return $string;
+	 }
 
 	/**
 	 * Method to catch the remove scripts from a document.
