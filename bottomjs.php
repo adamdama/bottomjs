@@ -3,6 +3,7 @@
  * @copyright	Copyright (C) 2012 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * 
+ * TODO combine inine scripts
  * TODO minify css
  * TODO ignore css already in top
  * TODO ignore empty css hrefs
@@ -225,16 +226,30 @@ class  plgSystemBottomjs extends JPlugin
 	
 	/**
 	 * Method to check if a script has already been found
+	 * 
+	 * @param {string} string the string to be checked against the stored scripts
 	 */
 	private function resolveDuplicates($string)
 	{
+		// if there are no scripts in the array the string passed cannot be a duplicate
+		if(!count($this->scripts))
+			return;
+		
+		// assume the script is not a duplicate until it is found
 		$found = false;
 		
 		// try an exact match first
-		if(count($this->scripts) && in_array($string, $this->scripts))
-			$found = true;
+		// loop over scripts to see if the string property of the element arrays matches the string passed
+		foreach($this->scripts as $script)
+		{
+			if($script['string'] == $string)
+			{
+				$found = true;
+				break;
+			}
+		}
 		
-		// check for same external scripts, tag attributes could be in a different order
+		// check for same external scripts source address, tag attributes could be in a different order
 		if(!$found)
 		{
 			$strSrc = $this->getHTMLAttribute('src', 0, $string);
