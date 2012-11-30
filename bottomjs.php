@@ -45,10 +45,20 @@ class  plgSystemBottomjs extends JPlugin
 	private $newDoc = '';
 	
 	private $minifyURL = '/libraries/minify/?f=';
-	
+	// references for document and application
 	private $application = null;
 	private $document = null; 
 	
+	/**
+	 * Constructs the plugin object
+	 * 
+	 * Link types are defined as constants
+	 * References to application and document are stored
+	 * 
+	 * @constructor
+	 * @param subject
+	 * @param {array} config array of configuration variables
+	 */
 	function __construct(&$subject, $config = array())
 	{
 		define('TYPE_EXTERNAL', 2);
@@ -62,7 +72,7 @@ class  plgSystemBottomjs extends JPlugin
 	}
 	
 	/**
-	 * Method to catch the onAfterRender event.
+	 * Method to catch the onBeforeRender event.
 	 *
 	 * This is where we catch the document before it is output, strip the tags
 	 * and then insert them at the specified point.
@@ -109,7 +119,16 @@ class  plgSystemBottomjs extends JPlugin
 				return;
 		}
 	}
-	
+	/**
+	 * Method to catch the onAfterRender event.
+	 *
+	 * This is where we catch the document before it is output, strip the tags
+	 * and then insert them at the specified point.
+	 *
+	 * @return  boolean  True on success
+	 *
+	 * @since   1.5
+	 */
 	function onAfterRender()
 	{
 		// quit if in application is admin
@@ -120,7 +139,7 @@ class  plgSystemBottomjs extends JPlugin
 	}
 
 	/**
-	 * Method to catch the remove scripts from a document.
+	 * Method to remove scripts from a document.
 	 * 
 	 * @return  boolean  True on success
 	 *
@@ -203,7 +222,10 @@ class  plgSystemBottomjs extends JPlugin
 		
 		return true;
 	}
-
+	
+	/**
+	 * Method to check if a script has already been found
+	 */
 	private function resolveDuplicates($string)
 	{
 		$found = false;
