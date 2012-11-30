@@ -279,6 +279,17 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	 private function resolveLocalURL($string)
 	 {
+	 	// get the source attribute so we can check it
+	 	$url = $this->getHTMLAttribute('src', 0, $string);
+		
+		// get the local domain and check for a direct match
+		$uri = JURI::getInstance();
+		$host = $uri->getScheme().'://'.$uri->getHost();
+		
+		// if the host matches the first part of the url then replace it with nothing and modify the string
+		if(strpos($url, $host) === 0)
+			$string = preg_replace('['.preg_quote($url).']', preg_replace('['.preg_quote($host).']', '', $url), $string);
+		
 	 	return $string;
 	 }
 
