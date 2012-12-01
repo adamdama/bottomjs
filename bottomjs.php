@@ -347,7 +347,6 @@ class  plgSystemBottomjs extends JPlugin
 			// set $offset to css end point
 			$offset = $e;
 		}
-		//	exit;
 		
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->css))
@@ -506,12 +505,19 @@ class  plgSystemBottomjs extends JPlugin
 		$addScript = false;
 		$url = JURI::base(true) . $this->minifyURL;
 		
+		// position at which to insert the minified script
+		$insertAt = 0;
+		
 		foreach($list as $key => $string)
 		{
 			if($string['type'] == TYPE_INTERNAL)
 			{
 				$addScript = true;
 				$url .= $this->getHTMLAttribute($assets == 'scripts' ? 'src' : 'href', 0, $string['string']).',';
+				
+				if($insertAt == 0)
+					$insertAt = $key;
+				
 				unset($list[$key]);
 			}
 		}
@@ -521,9 +527,25 @@ class  plgSystemBottomjs extends JPlugin
 		
 		$url = substr($url, 0, strlen($url) -1);
 		
-		$string = $assets == 'scripts' ? '<script type="text/javascript" src="'.$url.'" defer="defer"></script>' : '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
-			
-		array_unshift($list, array('string' => $string, 'type' => TYPE_INTERNAL));
+		$string = $assets == 'scripts' ? '<script type="text/javascript" src="'.$url.'"></script>' : '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
+		
+		// inserts the minified at the top of the document
+		//array_unshift($list, array('string' => $string, 'type' => TYPE_INTERNAL));
+		
+		// store the index of the last external script so we can insert after it
+		// $lind = 0;
+// 		
+		// // what we need to do is insert the scripts after the last external script
+		// foreach($list as $key => $item)
+		// {
+			// if($item['type'] == TYPE_EXTERNAL)
+			// {
+				// $lind = $key;
+			// }
+		// }
+		
+		// insert the minify source into the scripts array
+		$list = $this->array_insert_at($insertAt, array('string' => $string, 'type' => TYPE_INTERNAL), $list);
 	}
 	
 	private function isExternal($string, $type)
@@ -571,5 +593,10 @@ class  plgSystemBottomjs extends JPlugin
 			return false;*/
 		
 		return true;
+	}
+	
+	private function array_insert_at($index, $insert, $array)
+	{
+		return array_merge(array_slice($array, 0, $index), array($insert), array_slice($array, $index));
 	}
 }
