@@ -14,10 +14,8 @@
  * TODO script empty should check for whitespace
  * TODO make sure cross domain files are not minified
  * TODO get local absolute urls and make them rlative
+ * TODO minify script tag contents
  */
-
- 
- 
 
 // no direct access
 defined('_JEXEC') or die;
@@ -189,7 +187,7 @@ class  plgSystemBottomjs extends JPlugin
 				// if type is external check that it is not local
 				if($type == TYPE_EXTERNAL)
 				{
-					$string = $this->resolveLocalURL($string);
+					$string = $this->resolveLocalURL($string, 'src');
 					$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
 				}
 				
@@ -280,10 +278,10 @@ class  plgSystemBottomjs extends JPlugin
 	 * 
 	 * @param {string} string the script tag that needs to be checked for resolution
 	 */
-	 private function resolveLocalURL($string)
+	 private function resolveLocalURL($string, $attr)
 	 {
 	 	// get the source attribute so we can check it
-	 	$url = $this->getHTMLAttribute('src', 0, $string);
+	 	$url = $this->getHTMLAttribute($attr, 0, $string);
 		
 		// get the local domain and check for a direct match
 		$uri = JURI::getInstance();
@@ -335,6 +333,13 @@ class  plgSystemBottomjs extends JPlugin
 			{
 				$string = substr($this->doc, $s, $e - $s);
 				$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
+				
+				// if type is external check that it is not local
+				if($type == TYPE_EXTERNAL)
+				{
+					$string = $this->resolveLocalURL($string, 'href');
+					$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
+				}
 				
 				$this->css[] = array('string' => $string, 'type' => $type);	
 				$addPrev = -1;
@@ -505,20 +510,31 @@ class  plgSystemBottomjs extends JPlugin
 		$addScript = false;
 		$url = JURI::base(true) . $this->minifyURL;
 		
+		$script = '';
+		
 		// position at which to insert the minified script
 		$insertAt = 0;
 		
 		foreach($list as $key => $string)
 		{
-			if($string['type'] == TYPE_INTERNAL)
+			switch($string['type'])
 			{
-				$addScript = true;
-				$url .= $this->getHTMLAttribute($assets == 'scripts' ? 'src' : 'href', 0, $string['string']).',';
-				
-				if($insertAt == 0)
-					$insertAt = $key;
-				
-				unset($list[$key]);
+				case TYPE_INTERNAL:
+					$addScript = true;
+					$url .= $this->getHTMLAttribute($assets == 'scripts' ? 'src' : 'href', 0, $string['string']).',';
+					
+					if($insertAt == 0)
+						$insertAt = $key;
+					
+					unset($list[$key]);
+					break;
+				case TYPE_INLINE:
+					//preg_match("/<script[^>]*>(.*?)<\\/script>/si", $string['string'], $match);
+					//$content = $match[1];
+					
+					break;
+				default:
+					break;
 			}
 		}
 		
