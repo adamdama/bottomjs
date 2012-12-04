@@ -386,10 +386,45 @@ class  plgSystemBottomjs extends JPlugin
 		if($break < 0)
 			return false;
 		
-		$getString = create_function('$value', 'return $value[\'string\'];');
+		//$getString = create_function('$value', 'return $value[\'string\'];');
 		
 		// split the string into its left and right components implode the scripts and add them to the left string set the new document to the left and right strings combined
-		$this->newDoc = substr($this->newDoc, 0, $break) . implode("\r\n", array_map($getString, $this->$assets)) . substr($this->newDoc, $break);
+		//$this->newDoc = substr($this->newDoc, 0, $break) . implode("\r\n", array_map($getString, $this->$assets)) . substr($this->newDoc, $break);
+		
+		// get the before insert point and after inset point
+		$start = substr($this->newDoc, 0, $break);
+		$end = substr($this->newDoc, $break);
+		
+		// setup variables for tracking output
+		$middle = '';
+		$inlineOpen = false;
+		
+		// loop assets and combine concurrent javascript tags
+		foreach ($this->$assets as $asset)
+		{
+			if($assets == 'scripts')
+			{
+				if($asset['type'] == TYPE_INLINE)
+				{
+					$middle .= $inlineOpen ? '' : '<script type="text/javascript">';
+					preg_match("/<script[^>]*>(.*?)<\\/script>/si", $asset['string'], $match);
+					$middle .= $match[1];
+					$inlineOpen = true;
+				}
+				else
+				{
+					$middle .= $inlineOpen ? '</script>' : '';
+					$inlineOpen = false;
+					$middle .= $asset['string'];
+				}
+			}
+			else
+			{
+				$middle .= $asset['string'];
+			}
+		}
+		
+		$this->newDoc = $start . $middle . $end;
 		
 		// set the doc
 		$this->doc = $this->newDoc;
@@ -527,12 +562,6 @@ class  plgSystemBottomjs extends JPlugin
 						$insertAt = $key;
 					
 					unset($list[$key]);
-					break;
-				case TYPE_INLINE:
-					//preg_match("/<script[^>]*>(.*?)<\\/script>/si", $string['string'], $match);
-					//$content = $match[1];
-					
-					break;
 				default:
 					break;
 			}
