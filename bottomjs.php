@@ -3,9 +3,6 @@
  * @copyright	Copyright (C) 2012 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * 
- * TODO combine inine scripts
- * TODO minify css
- * TODO ignore css already in top
  * TODO ignore empty css hrefs
  * TODO single jquery or moo tools
  * TODO no moo tools front end
@@ -15,6 +12,7 @@
  * TODO make sure cross domain files are not minified
  * TODO get local absolute urls and make them rlative
  * TODO minify script tag contents
+ * TODO remove empty src and href attributes
  */
 
 // no direct access
@@ -174,7 +172,7 @@ class  plgSystemBottomjs extends JPlugin
 			if($e === false)				
 				break;
 			
-			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s) || $this->inComment($s, $e, $this->doc))
+			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s) || $this->inComment($s, $e, $this->doc) || (int) $this->params->get('remove_mootools') && $this->isMootools($s, $e, $this->doc))
 			{
 				$addPrev = $s;
 			}
@@ -638,6 +636,13 @@ class  plgSystemBottomjs extends JPlugin
 			return false;*/
 		
 		return true;
+	}
+	
+	private function isMootools($start, $end, $string)
+	{
+		$src = $this->getHTMLAttribute('src', $start, $string);
+		
+		return strpos($src, '/mootools') !== false;			
 	}
 	
 	private function array_insert_at($index, $insert, $array)

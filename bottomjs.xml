@@ -84,6 +84,15 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
+				<field
+					name="remove_mootools"
+					type="radio"
+					label="PLG_SYSTEM_BOTTOMJS_FIELD_REMOVE_MOOTOOLS_LABEL"
+					description="PLG_SYSTEM_BOTTOMJS_FIELD_REMOVE_MOOTOOLS_DESC"
+					default="1">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
 			</fieldset>
 			<fieldset name="CSS">
 				<field
