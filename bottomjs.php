@@ -5,14 +5,15 @@
  * 
  * TODO ignore empty css hrefs
  * TODO single jquery or moo tools
- * TODO no moo tools front end
  * TODO expose minify settings using fopen
  * TODO minify tags and external, or just tags
  * TODO script empty should check for whitespace
  * TODO make sure cross domain files are not minified
- * TODO get local absolute urls and make them rlative
  * TODO minify script tag contents
  * TODO remove empty src and href attributes
+ * TODO account for beginning and end tags in quotes
+ * 
+ * TODO use PHP xml parser to parse document
  */
 
 // no direct access
@@ -585,7 +586,8 @@ class  plgSystemBottomjs extends JPlugin
 			// {
 				// $lind = $key;
 			// }
-		// }
+		// }
+
 		
 		// insert the minify source into the scripts array
 		$list = $this->array_insert_at($insertAt, array('string' => $string, 'type' => TYPE_INTERNAL), $list);
