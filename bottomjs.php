@@ -14,6 +14,7 @@
  * TODO account for beginning and end tags in quotes
  * 
  * TODO use PHP xml parser to parse document
+ * TODO change minifier to uglifier
  */
 
 // no direct access
