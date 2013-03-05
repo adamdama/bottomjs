@@ -13,7 +13,7 @@
  * TODO remove empty src and href attributes
  * TODO account for beginning and end tags in quotes
  * 
- * TODO use PHP xml parser to parse document
+ * TODO use PHP xml parser to parse document - dont look up src so often
  * TODO change minifier to uglifier
  */
 
@@ -49,6 +49,9 @@ class  plgSystemBottomjs extends JPlugin
 	// references for document and application
 	private $application = null;
 	private $document = null; 
+	
+	// backup of original document
+	private $origDoc = null;
 	
 	/**
 	 * Constructs the plugin object
@@ -92,11 +95,16 @@ class  plgSystemBottomjs extends JPlugin
 		$params = array('template' => $this->application->getTemplate(), 'file' => 'index.php', 'directory' => JPATH_THEMES);
 		$caching = ($this->application->getCfg('caching') >= 2) ? true : false;
 		
-		$this->doc = $this->document->render($caching, $params);
-		
 		// if the document is empty there is nothing to do here
-		if($this->doc == '')
+		if(($docStr = $this->document->render($caching, $params)) === '')
 			return;
+		
+		// take a backup of original document
+		$this->origDoc = $docStr;
+		
+		// create the dom doc object
+		$this->doc = new DOMDocument;
+		$this->doc->loadHTML($docStr);
 		
 		// strip the document of tags
 		if((int) $this->params->get('move_js') && $this->stripScripts())
@@ -108,7 +116,7 @@ class  plgSystemBottomjs extends JPlugin
 			if(!$this->insert('scripts'))
 				return;
 		}
-		
+		/*
 		// move css if set
 		if((int) $this->params->get('move_css') && $this->stripCSS())
 		{
@@ -118,7 +126,7 @@ class  plgSystemBottomjs extends JPlugin
 			// insert the scripts at the specified position
 			if(!$this->insert('css', 'bh'))
 				return;
-		}
+		}*/
 	}
 	/**
 	 * Method to catch the onAfterRender event.
@@ -147,86 +155,56 @@ class  plgSystemBottomjs extends JPlugin
 	 * @since   2.5
 	 */
 	private function stripScripts()
-	{		
-		$this->newDoc = '';
-		
-		// set the string offest
-		$offset = 0;
-		
-		// flag for ignored scripts
-		$addPrev = -1;
-		
+	{
+		$scripts = $this->doc->getElementsByTagName('script');
+						
 		// loop through instances of script tags in the document
-		while($s = strpos($this->doc, $this->scriptStartTag, $offset))
+		foreach($scripts as $element)
 		{
-			// if a script was ignored add it to string
-			if($addPrev != -1)			
-				$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
-							
-			// add the text before the script tag to the new document
-			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
-			
-			// set closing tag position TODO use getEndOfTag
-			$e = $this->getEndOfTag($s, $this->doc, $this->scriptEndTag);
-			//$e = strpos($this->doc, $this->scriptEndTag, $offset) + strlen($this->scriptEndTag);
-			
-			// if end tag is not found stop looping
-			if($e === false)				
-				break;
-			
-			if(((int) $this->params->get('ignore_empty') && $this->scriptEmpty($s, $e)) || $this->inIgnoreList($s) || $this->inComment($s, $e, $this->doc) || (int) $this->params->get('remove_mootools') && $this->isMootools($s, $e, $this->doc))
+			$attr = 'src';
+			$src = $element->getAttribute($attr);			
+																
+			if(((int) $this->params->get('ignore_empty') && ($empty = $this->scriptEmpty($element))) || $this->inIgnoreList($src) || ((int) $this->params->get('remove_mootools') && $this->isMootools($src)))
 			{
-				$addPrev = $s;
+				continue;
 			}
 			else
 			{
-				$string = substr($this->doc, $s, $e - $s);
 				// set the scripts source type
-				$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
+				$type = ($empty ? ($this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
 				
 				// if type is external check that it is not local
 				if($type == TYPE_EXTERNAL)
 				{
-					$string = $this->resolveLocalURL($string, 'src');
-					$type = ($this->scriptEmpty($s, $e, true) ? ($this->isExternal($string, 'script') ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
+					$string = $this->resolveLocalURL($element, $attr);
+					$type = $this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL;
 				}
 				
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
 					//check to see if the script is already in the array
-					$found = $this->resolveDuplicates($string);
+					$found = $this->resolveDuplicates($src);
 					
 					if(!$found)
-						$this->scripts[] = array('string' => $string, 'type' => $type);
-					
-					$addPrev = -1;
+					{
+						$this->scripts[] = array('element' => $element->cloneNode(true), 'type' => $type);
+						$element->parentNode->removeChild($element);
+					}					
 				}
 				else
 				{
 					// add the script to the array
-					$this->scripts[] = array('string' => $string, 'type' => $type);
-					$addPrev = -1;
+					$this->scripts[] = array('element' => $element->cloneNode(true), 'type' => $type);
+					$element->parentNode->removeChild($element);
 				}				
 			}
-							
-			// set $offset to script end point
-			$offset = $e;
 		}
 		
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->scripts))
 			return false;
 		
-		// if a script was ignored add it to string
-		if($addPrev != -1)			
-			$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
-		
-		// add the rest of the document to the output string
-		$this->newDoc .= substr($this->doc, $e);
-		
-		// set the doc
-		$this->doc = $this->newDoc;
-		
+		// remove all scripts from the document object
 		$this->document->_scripts = array();
 		
 		return true;
@@ -278,10 +256,10 @@ class  plgSystemBottomjs extends JPlugin
 	 * 
 	 * @param {string} string the script tag that needs to be checked for resolution
 	 */
-	 private function resolveLocalURL($string, $attr)
+	 private function resolveLocalURL(DOMElement &$element, $attr)
 	 {
 	 	// get the source attribute so we can check it
-	 	$url = $this->getHTMLAttribute($attr, 0, $string);
+	 	$url = $element->getAttribute($attr);
 		
 		// get the local domain and check for a direct match
 		$uri = JURI::getInstance();
@@ -289,9 +267,7 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// if the host matches the first part of the url then replace it with nothing and modify the string
 		if(strpos($url, $host) === 0)
-			$string = preg_replace('['.preg_quote($url).']', preg_replace('['.preg_quote($host).']', '', $url), $string);
-		
-	 	return $string;
+			$element->setAttribute($attr, preg_replace('['.preg_quote($host).']', '', $url));
 	 }
 
 	/**
@@ -374,26 +350,11 @@ class  plgSystemBottomjs extends JPlugin
 	 * Method to catch the insert the scripts into a document.
 	 * 
 	 * @return  string  the processed document
-	 *
-	 * @since   2.5
 	 */
 	private function insert($assets, $insertAt=null)
 	{
 		// set the break point
-		$break = $this->getInsertAt($insertAt);
-				
-		// if break point is less then 0 then something is wrong
-		if($break < 0)
-			return false;
-		
-		//$getString = create_function('$value', 'return $value[\'string\'];');
-		
-		// split the string into its left and right components implode the scripts and add them to the left string set the new document to the left and right strings combined
-		//$this->newDoc = substr($this->newDoc, 0, $break) . implode("\r\n", array_map($getString, $this->$assets)) . substr($this->newDoc, $break);
-		
-		// get the before insert point and after inset point
-		$start = substr($this->newDoc, 0, $break);
-		$end = substr($this->newDoc, $break);
+		$insertElement = $this->doc->getElementsByTagName($insertAt == null ? 'body' : $insertAt)->item(0);
 		
 		// setup variables for tracking output
 		$middle = '';
@@ -402,73 +363,43 @@ class  plgSystemBottomjs extends JPlugin
 		// loop assets and combine concurrent javascript tags
 		foreach ($this->$assets as $asset)
 		{
+			$element = $asset['element'];
+			
 			if($assets == 'scripts')
 			{
 				if($asset['type'] == TYPE_INLINE)
 				{
-					$middle .= $inlineOpen ? '' : '<script type="text/javascript">';
-					preg_match("/<script[^>]*>(.*?)<\\/script>/si", $asset['string'], $match);
-					$middle .= $match[1];
+					$middle .= $element->nodeValue;
 					$inlineOpen = true;
 				}
 				else
 				{
-					$middle .= $inlineOpen ? '</script>' : '';
 					$inlineOpen = false;
-					$middle .= $asset['string'];
+					$inline = new DOMElement;
+					$inline->nodeValue = $middle;
+					$this->doc->appendChild($inline);
+					$this->doc->appendChild($element);
 				}
 			}
 			else
 			{
-				$middle .= $asset['string'];
+				$this->doc->appendChild($element);
 			}
 		}
 		
-		$this->newDoc = $start . $middle . $end;
-		
-		// set the doc
-		$this->doc = $this->newDoc;
+		$this->newDoc = $this->doc->saveXML();
 		
 		return true;
 	}
 	
-	private function getInsertAt($pos=null)
+	/**
+	 * Returns true if a script tag has no content and the src attribute is blank
+	 * The src attribute can be ignored by setting ignoreSource to true
+	 */
+	private function scriptEmpty(DOMElement $element, $ignoreSource = false)
 	{
-		$order = $pos == null ? 1 : null;
-		$pos = $pos == null ? (string) $this->params->get('insert_at') : $pos;
-		
-		//string to hold the translated parameter
-		$where = '';
-		
-		switch($pos)
-		{
-			case 'bh':
-				$o = strpos($this->newDoc, '<head');
-				$where = substr($this->newDoc, $o, $this->getEndOfTag($o, $this->newDoc) - $o);
-				break;
-			case 'eh':
-				$where = '</head>';
-				break;
-			case 'bb':
-				$o = strpos($this->newDoc, '<body');
-				$where = substr($this->newDoc, $o, $this->getEndOfTag($o, $this->newDoc) - $o);			
-				break;
-			case 'eb':
-			default:				
-				$where = '</body>';
-				break;
-		}
-				
-		// find the break point in the document
-		$break = !$order || (int) $this->params->get('order') > 0 ? strpos($this->newDoc, $where) + strlen($where) : strpos($this->newDoc, $where);
-		
-		return $break;
-	}
-	
-	private function scriptEmpty($start, $end, $ignoreSource = false)
-	{
-		if($end == $this->getEndOfTag($start, $this->doc) + strlen($this->scriptEndTag))
-			return $ignoreSource ? true : $this->getHTMLAttribute('src', $start, $this->doc) == '';
+		if(preg_match('/^\s+$/', $element->nodeValue))
+			return $ignoreSource ? true : preg_match('^\s*$', $element->getAttribute('src')) ? true : false;
 			
 		return false;
 	}
@@ -504,29 +435,33 @@ class  plgSystemBottomjs extends JPlugin
 		return (int) strpos($doc, $endtag, $start) + strlen($endtag);
 	}
 	
-	private function inIgnoreList($s)
+	/**
+	 * Checks script src attribute against ignore list
+	 */
+	private function inIgnoreList($src)
 	{
 		// set the ignore list
 		$ignoreList = explode("\n", (string) $this->params->get('ignore_list'));
 		
-		// get the script src
-		$src = $this->getHTMLAttribute('src',$s,$this->doc);
-		
 		// check for the src in the ignore list
-		if($src !== false && in_array($src, $ignoreList))
+		if(in_array($src, $ignoreList))
 			return true;
 		
 		return false;
 	}
 	
-	private function inScripts($string)
+	/**
+	 * Checks to see if a script src has already been added to the scripts array
+	 * Used for resolving duplicates
+	 */
+	private function inScripts($src)
 	{
 		$found = false;
 		
 		// loop over scripts to see if the string property of the element arrays matches the string passed
 		foreach($this->scripts as $script)
 		{
-			if($script['string'] == $string)
+			if($script['element']->getAttribute('src') == $src)
 			{
 				$found = true;
 				break;
@@ -594,11 +529,12 @@ class  plgSystemBottomjs extends JPlugin
 		$list = $this->array_insert_at($insertAt, array('string' => $string, 'type' => TYPE_INTERNAL), $list);
 	}
 	
-	private function isExternal($string, $type)
-	{
-		$attr = $type == 'script' ? 'src' : 'href';
-		
-		$val = $this->getHTMLAttribute($attr, 0, $string);
+	/**
+	 * Checks an element to see if its src/href is external or not
+	 */
+	private function isExternal(DOMElement $element, $attr)
+	{	
+		$val = $element->getAttribute($attr);
 		
 		$prots = array('http','https','//');
 		$external = false;
@@ -640,11 +576,11 @@ class  plgSystemBottomjs extends JPlugin
 		
 		return true;
 	}
-	
-	private function isMootools($start, $end, $string)
-	{
-		$src = $this->getHTMLAttribute('src', $start, $string);
-		
+	/**
+	 * Checks a script source for evidence of mootools
+	 */
+	private function isMootools($src)
+	{		
 		return strpos($src, '/mootools') !== false;			
 	}
 	
