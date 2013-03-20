@@ -167,13 +167,13 @@ class  plgSystemBottomjs extends JPlugin
 		for($i = 0; $i < $scripts->length; $i++)
 			$tmp[] = $scripts->item($i);
 		$scripts = $tmp;
-			
+		
 		// loop through instances of script tags in the document
 		while($element = array_shift($scripts))
 		{
 			$attr = 'src';
 			$src = $element->getAttribute($attr);
-			//echo 'x';
+			
 			// set the scripts source type
 			$type = ($this->scriptEmpty($element, true) ? ($this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
 			$empty = $this->scriptEmpty($element);
@@ -187,13 +187,12 @@ class  plgSystemBottomjs extends JPlugin
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
 					//check to see if the script is already in the array
-					$found = $this->resolveDuplicates($src);
+					$found = $type === TYPE_INLINE ? false : $this->resolveDuplicates($src);
 					
 					if(!$found)
-					{
 						$this->scripts[] = array('element' => $element->cloneNode(true), 'type' => $type);
-						$element->parentNode->removeChild($element);
-					}					
+					
+					$element->parentNode->removeChild($element);				
 				}
 				else
 				{
@@ -219,7 +218,7 @@ class  plgSystemBottomjs extends JPlugin
 	 * 
 	 * @param {string} string the string to be checked against the stored scripts
 	 */
-	private function resolveDuplicates($string)
+	private function resolveDuplicates($src)
 	{		
 		// assume the script is not a duplicate until it is found
 		$found = false;
@@ -229,25 +228,20 @@ class  plgSystemBottomjs extends JPlugin
 			return $found;
 		
 		// try an exact match first
-		if($this->inScripts($string))
+		if($this->inScripts($src))
 			$found = true;
 		
 		// check for same external scripts source address, tag attributes could be in a different order
 		if(!$found)
 		{
-			$strSrc = $this->getHTMLAttribute('src', 0, $string);
-			//if the string doesnt have a source we cant checck against it
-			if($strSrc !== false)
-			{						
-				foreach($this->scripts as $script)
+			foreach($this->scripts as $script)
+			{
+				$scsrc = $script['element']->getAttribute('src');
+				
+				if($src == $scsrc)
 				{
-					$src = $this->getHTMLAttribute('src', 0, $script['string']);
-					
-					if($src == $strSrc)
-					{
-						$found = true;
-						break;
-					}
+					$found = true;
+					break;
 				}
 			}
 		}
@@ -492,6 +486,10 @@ class  plgSystemBottomjs extends JPlugin
 		// loop over scripts to see if the string property of the element arrays matches the string passed
 		foreach($this->scripts as $script)
 		{
+			if($script['type'] === TYPE_INLINE)
+				continue;
+			echo $script['element']->getAttribute('src')."\r\n";
+			echo $src."\r\n";
 			if($script['element']->getAttribute('src') == $src)
 			{
 				$found = true;
