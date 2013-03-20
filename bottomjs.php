@@ -104,17 +104,18 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// create the dom doc object
 		$this->doc = new DOMDocument;
+		$this->doc->preserveWhiteSpace = false;
 		$this->doc->loadHTML($docStr);
 		
 		// strip the document of tags
 		if((int) $this->params->get('move_js') && $this->stripScripts())
 		{
-			if((int) $this->params->get('minify_js'))
-				$this->minify('scripts');
-			
-			// insert the scripts at the specified position
-			if(!$this->insert('scripts'))
-				return;
+			// if((int) $this->params->get('minify_js'))
+				// $this->minify('scripts');
+// 			
+			// // insert the scripts at the specified position
+			// if(!$this->insert('scripts'))
+				// return;
 		}
 		/*
 		// move css if set
@@ -144,7 +145,7 @@ class  plgSystemBottomjs extends JPlugin
 		if($this->application->isAdmin())
 			return;
 		
-		JResponse::setBody($this->newDoc);
+		JResponse::setBody($this->newDoc == '' ? $this->doc->saveHTML() : $this->newDoc);
 	}
 
 	/**
@@ -157,12 +158,18 @@ class  plgSystemBottomjs extends JPlugin
 	private function stripScripts()
 	{
 		$scripts = $this->doc->getElementsByTagName('script');
-						
+		
+		// convert the dom node list to an array
+		$tmp = array();
+		for($i = 0; $i < $scripts->length; $i++)
+			$tmp[] = $scripts->item($i);
+		$scripts = $tmp;
+			
 		// loop through instances of script tags in the document
-		foreach($scripts as $element)
+		while($element = array_pop($scripts))
 		{
 			$attr = 'src';
-			$src = $element->getAttribute($attr);			
+			$src = $element->getAttribute($attr);
 																
 			if(((int) $this->params->get('ignore_empty') && ($empty = $this->scriptEmpty($element))) || $this->inIgnoreList($src) || ((int) $this->params->get('remove_mootools') && $this->isMootools($src)))
 			{
@@ -199,10 +206,10 @@ class  plgSystemBottomjs extends JPlugin
 				}				
 			}
 		}
-		
+
 		// if there was nothing to remove then we might not need to continue
-		if(empty($this->scripts))
-			return false;
+		//if(empty($this->scripts))
+			//return false;
 		
 		// remove all scripts from the document object
 		$this->document->_scripts = array();
@@ -377,17 +384,17 @@ class  plgSystemBottomjs extends JPlugin
 					$inlineOpen = false;
 					$inline = new DOMElement;
 					$inline->nodeValue = $middle;
-					$this->doc->appendChild($inline);
-					$this->doc->appendChild($element);
+					//$this->doc->appendChild($inline);
+					//$this->doc->appendChild($element);
 				}
 			}
 			else
 			{
-				$this->doc->appendChild($element);
+				//$this->doc->appendChild($element);
 			}
 		}
 		
-		$this->newDoc = $this->doc->saveXML();
+		//$this->newDoc = $this->doc->saveHTML();
 		
 		return true;
 	}
