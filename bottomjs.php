@@ -169,7 +169,7 @@ class  plgSystemBottomjs extends JPlugin
 		$scripts = $tmp;
 			
 		// loop through instances of script tags in the document
-		while($element = array_pop($scripts))
+		while($element = array_shift($scripts))
 		{
 			$attr = 'src';
 			$src = $element->getAttribute($attr);
