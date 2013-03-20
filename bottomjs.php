@@ -366,7 +366,6 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// setup variables for tracking output
 		$middle = '';
-		$inlineOpen = false;
 		
 		// loop assets and combine concurrent javascript tags
 		foreach ($this->$assets as $asset)
@@ -378,16 +377,18 @@ class  plgSystemBottomjs extends JPlugin
 				if($asset['type'] == TYPE_INLINE)
 				{
 					$middle .= $element->nodeValue;
-					$inlineOpen = true;
 				}
 				else
 				{
-					$inlineOpen = false;
-					$inline = new DOMElement;
-					$inline->nodeValue = $middle;
-					//$this->doc->appendChild($inline);
-					//$this->doc->appendChild($element);
-					//((int) $this->params->get('remove_mootools') && $this->isMootools($src)))
+					if($middle !== '')
+					{
+						$inline = new DOMElement;
+						$inline->nodeValue = $middle;
+						$this->doc->appendChild($inline);
+					}
+					
+					if(!(int) $this->params->get('remove_mootools') || !$this->isMootools($element->getAttribute('src')))
+						$this->doc->appendChild($element);
 				}
 			}
 			else
