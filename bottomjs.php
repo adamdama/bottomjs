@@ -171,8 +171,9 @@ class  plgSystemBottomjs extends JPlugin
 			$attr = 'src';
 			$src = $element->getAttribute($attr);
 																
-			if(((int) $this->params->get('ignore_empty') && ($empty = $this->scriptEmpty($element))) || $this->inIgnoreList($src) || ((int) $this->params->get('remove_mootools') && $this->isMootools($src)))
+			if(((int) $this->params->get('ignore_empty') && ($empty = $this->scriptEmpty($element))) || $this->inIgnoreList($src))
 			{
+				echo 'i';
 				continue;
 			}
 			else
@@ -386,6 +387,7 @@ class  plgSystemBottomjs extends JPlugin
 					$inline->nodeValue = $middle;
 					//$this->doc->appendChild($inline);
 					//$this->doc->appendChild($element);
+					//((int) $this->params->get('remove_mootools') && $this->isMootools($src)))
 				}
 			}
 			else
