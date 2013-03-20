@@ -402,6 +402,13 @@ class  plgSystemBottomjs extends JPlugin
 	/**
 	 * Returns true if a script tag has no content and the src attribute is blank
 	 * The src attribute can be ignored by setting ignoreSource to true
+	 * 
+	 * @param DOMElement $element the element to check
+	 * @param bool $ignoreSource[optional] if true the srce attribute will not be checked
+	 * 
+	 * @return bool
+	 * 
+	 * TODO check if the element is actually a script tag
 	 */
 	private function scriptEmpty(DOMElement $element, $ignoreSource = false)
 	{
