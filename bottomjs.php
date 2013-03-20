@@ -183,14 +183,7 @@ class  plgSystemBottomjs extends JPlugin
 				continue;
 			}
 			else
-			{
-				// if type is external check that it is not local
-				if($type == TYPE_EXTERNAL)
-				{
-					$string = $this->resolveLocalURL($element, $attr);
-					$type = $this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL;
-				}
-				
+			{				
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
 					//check to see if the script is already in the array
@@ -271,14 +264,13 @@ class  plgSystemBottomjs extends JPlugin
 	 {
 	 	// get the source attribute so we can check it
 	 	$url = $element->getAttribute($attr);
-		
-		// get the local domain and check for a direct match
-		$uri = JURI::getInstance();
-		$host = $uri->getScheme().'://'.$uri->getHost();
+		$host = JURI::base();
 		
 		// if the host matches the first part of the url then replace it with nothing and modify the string
-		if(strpos($url, $host) === 0)
-			$element->setAttribute($attr, preg_replace('['.preg_quote($host).']', '', $url));
+		if($resolved = (strpos($url, $host) === 0))
+			$element->setAttribute($attr, preg_replace('['.preg_quote($host).']', JURI::base(true), $url));
+		
+		return $resolved;
 	 }
 
 	/**
@@ -573,19 +565,24 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function isExternal(DOMElement $element, $attr)
 	{	
-		$val = $element->getAttribute($attr);
+		$src = $element->getAttribute($attr);
 		
 		$prots = array('http','https','//');
 		$external = false;
 		
 		foreach($prots as $prot)
 		{
-			if(strpos($val, $prot) === 0)
+			if(strpos($src, $prot) === 0)
 			{
 				$external = true;
 				break;
 			}
 		}
+		
+		//TODO set as an option
+		// resolve local absolute urls into relative urls
+		if($external)
+			$external = $this->resolveLocalURL($element, $attr);
 		
 		return $external;
 	}
