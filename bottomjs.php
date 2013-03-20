@@ -53,6 +53,9 @@ class  plgSystemBottomjs extends JPlugin
 	// backup of original document
 	private $origDoc = null;
 	
+	// list of scripts to ignore
+	private $ignoreList = null;
+	
 	/**
 	 * Constructs the plugin object
 	 * 
@@ -170,17 +173,17 @@ class  plgSystemBottomjs extends JPlugin
 		{
 			$attr = 'src';
 			$src = $element->getAttribute($attr);
+			//echo 'x';
+			// set the scripts source type
+			$type = ($this->scriptEmpty($element, true) ? ($this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
+			$empty = $this->scriptEmpty($element);
 																
-			if(((int) $this->params->get('ignore_empty') && ($empty = $this->scriptEmpty($element))) || $this->inIgnoreList($src))
+			if(((int) $this->params->get('ignore_empty') && $empty) || ($type != TYPE_INLINE && $this->inIgnoreList($src)))
 			{
-				echo 'i';
 				continue;
 			}
 			else
 			{
-				// set the scripts source type
-				$type = ($empty ? ($this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
-				
 				// if type is external check that it is not local
 				if($type == TYPE_EXTERNAL)
 				{
@@ -415,8 +418,8 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function scriptEmpty(DOMElement $element, $ignoreSource = false)
 	{
-		if(preg_match('/^\s+$/', $element->nodeValue))
-			return $ignoreSource ? true : preg_match('^\s*$', $element->getAttribute('src')) ? true : false;
+		if(preg_match('/^$|^\s+$/', $element->nodeValue))
+			return $ignoreSource ? true : preg_match('/^$|^\s+$/', $element->getAttribute('src')) ? true : false;
 			
 		return false;
 	}
@@ -457,14 +460,33 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function inIgnoreList($src)
 	{
-		// set the ignore list
-		$ignoreList = explode("\n", (string) $this->params->get('ignore_list'));
+		if($this->ignoreList === false)
+			return false;
+		
+		//has the ignore list been created already
+		if($this->ignoreList === null)
+		{
+			// set the ignore list
+			$this->ignoreList = explode(",", (string) preg_replace('/\s/', '', $this->params->get('ignore_list')));
+			if($this->ignoreList[0] === '')
+			{
+				$this->ignoreList = false;
+				return false;
+			}
+		}
+		
+		$found = false;
+		foreach ($this->ignoreList as $ignore)
+		{
+			if($src == $ignore)
+			{
+				$found = true;
+				break;
+			}
+		}
 		
 		// check for the src in the ignore list
-		if(in_array($src, $ignoreList))
-			return true;
-		
-		return false;
+		return $found;
 	}
 	
 	/**
