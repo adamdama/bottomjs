@@ -72,8 +72,8 @@ class  plgSystemBottomjs extends JPlugin
 		define('TYPE_INTERNAL', 1);
 		define('TYPE_INLINE', 0);
 		
-		$this->application =& JFactory::getApplication();
-		$this->document =& JFactory::getDocument();
+		$this->application = JFactory::getApplication();
+		$this->document = JFactory::getDocument();
 		
 		parent::__construct($subject, $config);
 	}
@@ -120,17 +120,17 @@ class  plgSystemBottomjs extends JPlugin
 			if(!$this->insert('scripts'))
 				return;
 		}
-		/*
+		
 		// move css if set
 		if((int) $this->params->get('move_css') && $this->stripCSS())
 		{
-			if((int) $this->params->get('minify_css'))
-				$this->minify('css');
+			//if((int) $this->params->get('minify_css'))
+				//$this->minify('css');
 			
 			// insert the scripts at the specified position
-			if(!$this->insert('css', 'bh'))
+			if(!$this->insert('css'))
 				return;
-		}*/
+		}
 	}
 	/**
 	 * Method to catch the onAfterRender event.
@@ -160,6 +160,7 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function stripScripts()
 	{
+		// get all of the script tags
 		$scripts = $this->doc->getElementsByTagName('script');
 		
 		// convert the dom node list to an array
@@ -178,13 +179,15 @@ class  plgSystemBottomjs extends JPlugin
 			$empty = $this->scriptEmpty($element);
 			
 			$src = $element->getAttribute($attr);
-																
+						
+			// check whether or not to move empty tags										
 			if(((int) $this->params->get('ignore_empty') && $empty) || ($type != TYPE_INLINE && $this->inIgnoreList($src)))
 			{
 				continue;
 			}
 			else
-			{				
+			{
+				// check if we need to resolve duplicates				
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
 					//check to see if the script is already in the array
@@ -205,8 +208,8 @@ class  plgSystemBottomjs extends JPlugin
 		}
 
 		// if there was nothing to remove then we might not need to continue
-		//if(empty($this->scripts))
-			//return false;
+		if(empty($this->scripts))
+			return false;
 		
 		// remove all scripts from the document object
 		$this->document->_scripts = array();
@@ -379,7 +382,7 @@ class  plgSystemBottomjs extends JPlugin
 			}
 			else
 			{
-				//$insertElement->appendChild($element);
+				$insertElement->appendChild($element);
 			}
 		}
 		
