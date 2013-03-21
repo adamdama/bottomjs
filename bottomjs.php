@@ -116,9 +116,9 @@ class  plgSystemBottomjs extends JPlugin
 			// if((int) $this->params->get('minify_js'))
 				// $this->minify('scripts');
 // 			
-			// // insert the scripts at the specified position
-			// if(!$this->insert('scripts'))
-				// return;
+			// insert the scripts at the specified position
+			if(!$this->insert('scripts'))
+				return;
 		}
 		/*
 		// move css if set
@@ -172,11 +172,12 @@ class  plgSystemBottomjs extends JPlugin
 		while($element = array_shift($scripts))
 		{
 			$attr = 'src';
-			$src = $element->getAttribute($attr);
 			
 			// set the scripts source type
 			$type = ($this->scriptEmpty($element, true) ? ($this->isExternal($element, $attr) ? TYPE_EXTERNAL : TYPE_INTERNAL) : TYPE_INLINE);
 			$empty = $this->scriptEmpty($element);
+			
+			$src = $element->getAttribute($attr);
 																
 			if(((int) $this->params->get('ignore_empty') && $empty) || ($type != TYPE_INLINE && $this->inIgnoreList($src)))
 			{
@@ -228,21 +229,15 @@ class  plgSystemBottomjs extends JPlugin
 			return $found;
 		
 		// try an exact match first
-		if($this->inScripts($src))
-			$found = true;
-		
-		// check for same external scripts source address, tag attributes could be in a different order
-		if(!$found)
+		foreach($this->scripts as $script)
 		{
-			foreach($this->scripts as $script)
+			if($script['type'] === TYPE_INLINE)
+				continue;
+			
+			if($script['element']->getAttribute('src') == $src)
 			{
-				$scsrc = $script['element']->getAttribute('src');
-				
-				if($src == $scsrc)
-				{
-					$found = true;
-					break;
-				}
+				$found = true;
+				break;
 			}
 		}
 		
@@ -262,7 +257,7 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// if the host matches the first part of the url then replace it with nothing and modify the string
 		if($resolved = (strpos($url, $host) === 0))
-			$element->setAttribute($attr, preg_replace('['.preg_quote($host).']', JURI::base(true), $url));
+			$element->setAttribute($attr, preg_replace('['.preg_quote($host).']', JURI::base(true).'/', $url));
 		
 		return $resolved;
 	 }
@@ -353,7 +348,7 @@ class  plgSystemBottomjs extends JPlugin
 		// set the break point
 		$insertElement = $this->doc->getElementsByTagName($insertAt == null ? 'body' : $insertAt)->item(0);
 		
-		// setup variables for tracking output
+		// var for tracking inline output
 		$middle = '';
 		
 		// loop assets and combine concurrent javascript tags
@@ -363,7 +358,7 @@ class  plgSystemBottomjs extends JPlugin
 			
 			if($assets == 'scripts')
 			{
-				if($asset['type'] == TYPE_INLINE)
+				if($asset['type'] === TYPE_INLINE)
 				{
 					$middle .= $element->nodeValue;
 				}
@@ -371,22 +366,24 @@ class  plgSystemBottomjs extends JPlugin
 				{
 					if($middle !== '')
 					{
-						$inline = new DOMElement;
+						$inline = new DOMElement('script');
+						$insertElement->appendChild($inline);
+						$inline->setAttribute('type', 'text/javascript');
 						$inline->nodeValue = $middle;
-						$this->doc->appendChild($inline);
+						$middle = '';
 					}
 					
 					if(!(int) $this->params->get('remove_mootools') || !$this->isMootools($element->getAttribute('src')))
-						$this->doc->appendChild($element);
+						$insertElement->appendChild($element);
 				}
 			}
 			else
 			{
-				//$this->doc->appendChild($element);
+				//$insertElement->appendChild($element);
 			}
 		}
 		
-		//$this->newDoc = $this->doc->saveHTML();
+		$this->newDoc = $this->doc->saveHTML();
 		
 		return true;
 	}
@@ -488,8 +485,7 @@ class  plgSystemBottomjs extends JPlugin
 		{
 			if($script['type'] === TYPE_INLINE)
 				continue;
-			echo $script['element']->getAttribute('src')."\r\n";
-			echo $src."\r\n";
+			
 			if($script['element']->getAttribute('src') == $src)
 			{
 				$found = true;
