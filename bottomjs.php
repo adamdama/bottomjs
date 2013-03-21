@@ -30,31 +30,21 @@ defined('_JEXEC') or die;
  */
 class  plgSystemBottomjs extends JPlugin
 {
-	private $scriptStartTag = '<script';
-	private $scriptEndTag = '</script>';
-	private $cssStartTag = '<link';
-	private $cssEndTag = '/>';
-	private $commentStartTag = '<!--';
-	private $commentEndTag = '-->';
 	// create array to contain scripts
 	private $scripts = array();
 	// create array to contain scripts
 	private $css = array();
-	// 
 	private $preMinify = array();
+	private $minifyURL = '/libraries/minify/?f=';
+	// backup of original document as a string
+	private $origDoc = null;
 	// create string to contain the original document
 	private $doc = '';
-	// create string to contain the original document
-	private $newDoc = '';
-	
-	private $minifyURL = '/libraries/minify/?f=';
+	// create string to contain the modified document
+	private $newDoc = '';	
 	// references for document and application
 	private $application = null;
-	private $document = null; 
-	
-	// backup of original document
-	private $origDoc = null;
-	
+	private $document = null; 	
 	// list of scripts to ignore
 	private $ignoreList = null;
 	
@@ -66,7 +56,7 @@ class  plgSystemBottomjs extends JPlugin
 	 * 
 	 * @constructor
 	 * @param subject
-	 * @param {array} config array of configuration variables
+	 * @param array config array of configuration variables
 	 */
 	function __construct(&$subject, $config = array())
 	{
@@ -370,11 +360,9 @@ class  plgSystemBottomjs extends JPlugin
 	
 	/**
 	 * Returns true if a script tag has no content and the src attribute is blank
-	 * The src attribute can be ignored by setting ignoreSource to true
-	 * 
+	 * The src attribute can be ignored by setting ignoreSource to true	 * 
 	 * @param DOMElement $element the element to check
-	 * @param bool $ignoreSource[optional] if true the srce attribute will not be checked
-	 * 
+	 * @param bool $ignoreSource[optional] if true the srce attribute will not be checked	 * 
 	 * @return bool
 	 * 
 	 * TODO check if the element is actually a script tag
@@ -387,39 +375,10 @@ class  plgSystemBottomjs extends JPlugin
 		return false;
 	}
 	
-	/*
-	 * TODO Account for escaped ""
-	 * TODO Account for attribute with ''
-	 */
-	private function getHTMLAttribute($attr, $start, $doc)
-	{
-		$attrPos = strpos($doc, $attr, $start);
-		
-		// check property exists
-		if($attrPos === false || $attrPos > $this->getEndOfTag($start, $doc))
-			return false;
-
-		// get value position
-		$valPos = strpos($doc, '="', $attrPos) + 2;
-		
-		// check for attribute with no =
-		if($attrPos + strlen($attr) - $valPos > 1)
-			return false;		
-		
-		//return the attributes value
-		return substr($doc, $valPos, strpos($doc,'"', $valPos) - $valPos);
-	}
-	
-	/*
-	 * TODO Account for escaped >
-	 */
-	private function getEndOfTag($start, $doc, $endtag='>')
-	{
-		return (int) strpos($doc, $endtag, $start) + strlen($endtag);
-	}
-	
 	/**
 	 * Checks script src attribute against ignore list
+	 * @param string the src string to check against the ignore list
+	 * @return bool
 	 */
 	private function inIgnoreList($src)
 	{
@@ -514,22 +473,6 @@ class  plgSystemBottomjs extends JPlugin
 		
 		$string = $assets == 'scripts' ? '<script type="text/javascript" src="'.$url.'"></script>' : '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
 		
-		// inserts the minified at the top of the document
-		//array_unshift($list, array('string' => $string, 'type' => TYPE_INTERNAL));
-		
-		// store the index of the last external script so we can insert after it
-		// $lind = 0;
-// 		
-		// // what we need to do is insert the scripts after the last external script
-		// foreach($list as $key => $item)
-		// {
-			// if($item['type'] == TYPE_EXTERNAL)
-			// {
-				// $lind = $key;
-			// }
-		// }
-
-		
 		// insert the minify source into the scripts array
 		$list = $this->array_insert_at($insertAt, array('string' => $string, 'type' => TYPE_INTERNAL), $list);
 	}
@@ -567,32 +510,6 @@ class  plgSystemBottomjs extends JPlugin
 			$external = $this->resolveLocalURL($element, $attr);
 		
 		return $external;
-	}
-	
-	private function inComment($s, $e, $string)
-	{
-		$before = substr($string, 0, $s);
-		$open = strrpos($before, $this->commentStartTag);
-		
-		if($open === false)
-			return false;
-		
-		$close = strpos($before, $this->commentEndTag, $open);
-		
-		if($close !== false)
-			return false;
-		
-		/*$after = substr($string, $e);		
-		$close = strpos($after, $this->commentEndTag);
-		
-		if($close !== false)
-			return false;
-			
-		$open = strrpos($after, $this->commentStartTag, $close);
-		if($open !== false)
-			return false;*/
-		
-		return true;
 	}
 	/**
 	 * Checks a script source for evidence of mootools
