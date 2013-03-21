@@ -15,6 +15,8 @@
  * 
  * TODO use PHP xml parser to parse document - dont look up src so often
  * TODO change minifier to uglifier
+ * TODO check for duplicate inline js
+ * TODO chack for inline css
  */
 
 // no direct access
@@ -106,19 +108,16 @@ class  plgSystemBottomjs extends JPlugin
 		$this->origDoc = $docStr;
 		
 		// create the dom doc object
-		$this->doc = new DOMDocument;
-		$this->doc->preserveWhiteSpace = false;
-		$this->doc->loadHTML($docStr);
+		$this->doc = $this->createDOMDoc($docStr);
 		
 		// strip the document of tags
 		if((int) $this->params->get('move_js') && $this->stripScripts())
 		{
 			// if((int) $this->params->get('minify_js'))
 				// $this->minify('scripts');
-// 			
-			// insert the scripts at the specified position
-			if(!$this->insert('scripts'))
-				return;
+			
+			// insert the scripts at
+			$this->insert('scripts');
 		}
 		
 		// move css if set
@@ -127,11 +126,24 @@ class  plgSystemBottomjs extends JPlugin
 			//if((int) $this->params->get('minify_css'))
 				//$this->minify('css');
 			
-			// insert the scripts at the specified position
-			if(!$this->insert('css'))
-				return;
+			// insert the css
+			$this->insert('css');
 		}
 	}
+
+	/**
+	 * Creates a document object from a html string
+	 * @param string a string of HTML to crate a DOMDocument with
+	 * @return DOMDocument
+	 */
+	 private function createDOMDoc($string='')
+	 {
+	 	$doc = new DOMDocument;
+		$doc->preserveWhiteSpace = false;
+		$doc->loadHTML($string);
+		
+		return $doc;
+	 }
 	/**
 	 * Method to catch the onAfterRender event.
 	 *
@@ -274,69 +286,36 @@ class  plgSystemBottomjs extends JPlugin
 	 */
 	private function stripCSS()
 	{
-		$this->newDoc = '';
-				
-		// set the string offest
-		$offset = 0;
+		// get all of the link tags
+		$css = $this->doc->getElementsByTagName('link');
 		
-		// flag for ignored css
-		$addPrev = -1;
+		// convert the dom node list to an array
+		// filter out links that are not css
+		$tmp = array();
+		for($i = 0; $i < $css->length; $i++)
+		{
+			$el = $css->item($i);
+			if($el->getAttribute('type') == 'text/css' || $el->getAttribute('rel') == 'stylesheet')
+				$tmp[] = $css->item($i);
+		}
+		$css = $tmp;
 		
 		// loop through instances of script tags in the document
-		while($s = strpos($this->doc, $this->cssStartTag, $offset))
+		while($element = array_shift($css))
 		{
-			// if a css was ignored add it to string
-			if($addPrev != -1)			
-				$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
-							
-			// add the text before the css tag to the new document
-			$this->newDoc .= substr($this->doc, $offset, $s - $offset);
+			$attr = 'href';
 			
-			// set closing tag position TODO use getEndOfTag
-			$e = $this->getEndOfTag($s, $this->doc);
-			
-			// if end tag is not found stop looping
-			if($e === false)				
-				break;
-			
-			// add the css to the array
-			if($this->getHTMLAttribute('rel', $s, $this->doc) == 'stylesheet' && !$this->inComment($s, $e, $this->doc))
-			{
-				$string = substr($this->doc, $s, $e - $s);
-				$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
-				
-				// if type is external check that it is not local
-				if($type == TYPE_EXTERNAL)
-				{
-					$string = $this->resolveLocalURL($string, 'href');
-					$type = $this->isExternal($string, 'css') ? TYPE_EXTERNAL : TYPE_INTERNAL;
-				}
-				
-				$this->css[] = array('string' => $string, 'type' => $type);	
-				$addPrev = -1;
-			}
-			elseif($this->inComment($s, $e, $this->doc))
-			{
-				$addPrev = $s;
-			}
-						
-			// set $offset to css end point
-			$offset = $e;
+			// set the css source type
+			$this->css[] = array('element' => $element->cloneNode(true), 'type' => $this->isExternal($element, 'href') ? TYPE_EXTERNAL : TYPE_INTERNAL);	
+			$element->parentNode->removeChild($element);
 		}
 		
 		// if there was nothing to remove then we might not need to continue
 		if(empty($this->css))
 			return false;
 		
-		// if a script was ignored add it to string
-		if($addPrev != -1)			
-			$this->newDoc .= substr($this->doc, $addPrev, $offset - $addPrev);
-		
-		// add the rest of the document to the output string
-		$this->newDoc .= substr($this->doc, $e);
-		
-		// set the doc
-		$this->doc = $this->newDoc;
+		// remove all css from the document object
+		$this->document->_styleSheets = array();
 		
 		return true;
 	}
@@ -349,7 +328,7 @@ class  plgSystemBottomjs extends JPlugin
 	private function insert($assets, $insertAt=null)
 	{
 		// set the break point
-		$insertElement = $this->doc->getElementsByTagName($insertAt == null ? 'body' : $insertAt)->item(0);
+		$insertElement = $this->doc->getElementsByTagName($insertAt == null ? $assets == 'scripts' ? 'body' : 'head' : $insertAt)->item(0);
 		
 		// var for tracking inline output
 		$middle = '';
@@ -382,13 +361,11 @@ class  plgSystemBottomjs extends JPlugin
 			}
 			else
 			{
-				$insertElement->appendChild($element);
+				$new = $insertElement->insertBefore($element,$insertElement->firstChild);
 			}
 		}
 		
 		$this->newDoc = $this->doc->saveHTML();
-		
-		return true;
 	}
 	
 	/**
@@ -559,14 +536,22 @@ class  plgSystemBottomjs extends JPlugin
 	
 	/**
 	 * Checks an element to see if its src/href is external or not
+	 * 
+	 * @param DOMElement $element the element to check
+	 * @param string $attr the attribute to use in the check
 	 */
 	private function isExternal(DOMElement $element, $attr)
-	{	
+	{
+		// get the elments attribute value	
 		$src = $element->getAttribute($attr);
+		if($src == '' || $src == null)
+			return false;
 		
+		// set protocals to check
 		$prots = array('http','https','//');
 		$external = false;
 		
+		// loop over protocols and check for presence the attribute value
 		foreach($prots as $prot)
 		{
 			if(strpos($src, $prot) === 0)
