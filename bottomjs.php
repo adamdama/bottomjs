@@ -264,7 +264,7 @@ class  plgSystemBottomjs extends JPlugin
 		if($resolved = (strpos($url, $host) === 0))
 			$element->setAttribute($attr, preg_replace('['.preg_quote($host).']', JURI::base(true).'/', $url));
 		
-		return $resolved;
+		return !$resolved;
 	 }
 
 	/**
@@ -474,7 +474,6 @@ class  plgSystemBottomjs extends JPlugin
 		
 		// remove the last comma
 		$url = substr($url, 0, strlen($url) -1);
-		echo $url;
 		
 		// create a temporary dom document
 		$dom = new DOMDocument;
