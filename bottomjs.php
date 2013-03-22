@@ -103,8 +103,8 @@ class  plgSystemBottomjs extends JPlugin
 		// strip the document of tags
 		if((int) $this->params->get('move_js') && $this->stripScripts())
 		{
-			// if((int) $this->params->get('minify_js'))
-				// $this->minify('scripts');
+			if((int) $this->params->get('minify_js'))
+				$this->minify('scripts');
 			
 			// insert the scripts at
 			$this->insert('scripts');
@@ -113,8 +113,8 @@ class  plgSystemBottomjs extends JPlugin
 		// move css if set
 		if((int) $this->params->get('move_css') && $this->stripCSS())
 		{
-			//if((int) $this->params->get('minify_css'))
-				//$this->minify('css');
+			if((int) $this->params->get('minify_css'))
+				$this->minify('css');
 			
 			// insert the css
 			$this->insert('css');
@@ -346,7 +346,12 @@ class  plgSystemBottomjs extends JPlugin
 					}
 					
 					if(!(int) $this->params->get('remove_mootools') || !$this->isMootools($element->getAttribute('src')))
-						$insertElement->appendChild($element);
+					{
+						if(isset($asset['import']))
+							$insertElement->appendChild($this->doc->importNode($element, true));
+						else
+							$insertElement->appendChild($element);
+					}
 				}
 			}
 			else
@@ -444,18 +449,16 @@ class  plgSystemBottomjs extends JPlugin
 		$addScript = false;
 		$url = JURI::base(true) . $this->minifyURL;
 		
-		$script = '';
-		
 		// position at which to insert the minified script
 		$insertAt = 0;
 		
-		foreach($list as $key => $string)
+		foreach($list as $key => $asset)
 		{
-			switch($string['type'])
+			switch($asset['type'])
 			{
 				case TYPE_INTERNAL:
 					$addScript = true;
-					$url .= $this->getHTMLAttribute($assets == 'scripts' ? 'src' : 'href', 0, $string['string']).',';
+					$url .= $asset['element']->getAttribute($assets == 'scripts' ? 'src' : 'href').',';
 					
 					if($insertAt == 0)
 						$insertAt = $key;
@@ -469,12 +472,33 @@ class  plgSystemBottomjs extends JPlugin
 		if(!$addScript)
 			return;
 		
+		// remove the last comma
 		$url = substr($url, 0, strlen($url) -1);
+		echo $url;
 		
-		$string = $assets == 'scripts' ? '<script type="text/javascript" src="'.$url.'"></script>' : '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
+		// create a temporary dom document
+		$dom = new DOMDocument;
+		
+		// create the new dom element
+		if($assets == 'scripts')
+		{
+			$element = new DOMElement('script');
+			$dom->appendChild($element);
+			$element->setAttribute('type', 'text/javascript');
+			$element->setAttribute('src', $url);
+		}
+		else
+		{
+			
+			$element = new DOMElement('link');
+			$dom->appendChild($element);
+			$element->setAttribute('type', 'text/css');
+			$element->setAttribute('rel', 'stylesheet');
+			$element->setAttribute('href', $url);
+		}
 		
 		// insert the minify source into the scripts array
-		$list = $this->array_insert_at($insertAt, array('string' => $string, 'type' => TYPE_INTERNAL), $list);
+		$list = $this->array_insert_at($insertAt, array('element' => $element->cloneNode(true), 'type' => TYPE_INTERNAL, 'import' => true), $list);
 	}
 	
 	/**
