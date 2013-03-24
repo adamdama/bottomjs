@@ -301,7 +301,9 @@ class  plgSystemBottomjs extends JPlugin
 			$attr = 'href';
 			
 			// set the css source type
-			$this->css[] = array('element' => $element->cloneNode(true), 'type' => $this->isExternal($element, 'href') ? TYPE_EXTERNAL : TYPE_INTERNAL);	
+			// external is checked first so tht the url is resolved if applicable
+			$external = $this->isExternal($element, 'href');
+			$this->css[] = array('element' => $element->cloneNode(true), 'type' => $external ? TYPE_EXTERNAL : TYPE_INTERNAL);	
 			$element->parentNode->removeChild($element);
 		}
 		
@@ -466,7 +468,7 @@ class  plgSystemBottomjs extends JPlugin
 			{
 				$addScript = true;
 				$url .= $asset['element']->getAttribute($assets == 'scripts' ? 'src' : 'href').',';
-				
+								
 				if($insertAt == 0)
 					$insertAt = $key;
 				
