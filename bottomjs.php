@@ -12,7 +12,7 @@
  * TODO minify script tag contents
  * TODO remove empty src and href attributes
  * TODO account for beginning and end tags in quotes
- * 
+ * TODO ignore css for specific media types, print projection etc
  * TODO use PHP xml parser to parse document - dont look up src so often
  * TODO change minifier to uglifier
  * TODO check for duplicate inline js
@@ -35,7 +35,8 @@ class  plgSystemBottomjs extends JPlugin
 	// create array to contain scripts
 	private $css = array();
 	private $preMinify = array();
-	private $minifyURL = '/libraries/minify/?f=';
+	// path to the minify script
+	private $minifyPath = '/plugins/system/bottomjs/min/?f=';
 	// backup of original document as a string
 	private $origDoc = null;
 	// create string to contain the original document
@@ -64,6 +65,10 @@ class  plgSystemBottomjs extends JPlugin
 		define('TYPE_INTERNAL', 1);
 		define('TYPE_INLINE', 0);
 		
+		// add the directory path to the minify url
+		$this->minifyPath = JURI::base(true).$this->minifyPath;
+		
+		// set application and document references
 		$this->application = JFactory::getApplication();
 		$this->document = JFactory::getDocument();
 		
@@ -356,7 +361,10 @@ class  plgSystemBottomjs extends JPlugin
 			}
 			else
 			{
-				$new = $insertElement->insertBefore($element,$insertElement->firstChild);
+				if(isset($asset['import']))
+					$insertElement->insertBefore($this->doc->importNode($element, true), $insertElement->firstChild);
+				else
+					$insertElement->insertBefore($element, $insertElement->firstChild);
 			}
 		}
 		
@@ -447,25 +455,22 @@ class  plgSystemBottomjs extends JPlugin
 		$this->preMinify[$assets] = $list;
 		
 		$addScript = false;
-		$url = JURI::base(true) . $this->minifyURL;
+		$url = $this->minifyPath;
 		
 		// position at which to insert the minified script
 		$insertAt = 0;
 		
 		foreach($list as $key => $asset)
 		{
-			switch($asset['type'])
+			if($asset['type'] == TYPE_INTERNAL)
 			{
-				case TYPE_INTERNAL:
-					$addScript = true;
-					$url .= $asset['element']->getAttribute($assets == 'scripts' ? 'src' : 'href').',';
-					
-					if($insertAt == 0)
-						$insertAt = $key;
-					
-					unset($list[$key]);
-				default:
-					break;
+				$addScript = true;
+				$url .= $asset['element']->getAttribute($assets == 'scripts' ? 'src' : 'href').',';
+				
+				if($insertAt == 0)
+					$insertAt = $key;
+				
+				unset($list[$key]);
 			}
 		}
 		
