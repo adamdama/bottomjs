@@ -149,6 +149,9 @@ class  plgSystemBottomjs extends JPlugin
 		// quit if in application is admin
 		if($this->application->isAdmin())
 			return;
+		// TODO add as option
+		// compress output with gzip
+		if (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) ob_start("ob_gzhandler"); else ob_start();
 		
 		JResponse::setBody($this->newDoc == '' ? $this->doc->saveHTML() : $this->newDoc);
 	}
