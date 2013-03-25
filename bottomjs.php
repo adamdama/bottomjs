@@ -7,16 +7,11 @@
  * TODO single jquery or moo tools
  * TODO expose minify settings using fopen
  * TODO minify tags and external, or just tags
- * TODO script empty should check for whitespace
- * TODO make sure cross domain files are not minified
  * TODO minify script tag contents
  * TODO remove empty src and href attributes
- * TODO account for beginning and end tags in quotes
  * TODO ignore css for specific media types, print projection etc
- * TODO use PHP xml parser to parse document - dont look up src so often
- * TODO change minifier to uglifier
  * TODO check for duplicate inline js
- * TODO chack for inline css
+ * TODO check for inline css
  */
 
 // no direct access
