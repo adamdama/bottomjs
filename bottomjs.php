@@ -348,7 +348,10 @@ class  plgSystemBottomjs extends JPlugin
 						$inline = new DOMElement('script');
 						$insertElement->appendChild($inline);
 						$inline->setAttribute('type', 'text/javascript');
-						$inline->nodeValue = $middle;
+						$cm = $inline->ownerDocument->createTextNode("\n//");
+				        $ct = $inline->ownerDocument->createCDATASection("\n" . $middle . "\n//");
+				        $inline->appendChild($cm);
+				        $inline->appendChild($ct);
 						$middle = '';
 					}
 					
