@@ -1,6 +1,7 @@
 <?php
 /**
- * @copyright	Copyright (C) 2012 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) Adam Cox 2013.
+ * @author      Adam Cox
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * 
  * TODO ignore empty css hrefs
@@ -23,37 +24,68 @@ defined('_JEXEC') or die;
  * @package		Joomla.Plugin
  * @subpackage	System.bottomjs
  */
+/** @noinspection PhpUndefinedClassInspection */
 class  plgSystemBottomjs extends JPlugin
 {
-	// create array to contain scripts
-	private $scripts = array();
-	// create array to contain scripts
-	private $css = array();
-	private $preMinify = array();
-	// path to the minify script
-	private $minifyPath = '/plugins/system/bottomjs/min/?f=';
-	// backup of original document as a string
-	private $origDoc = null;
-	// create string to contain the original document
-	private $doc = '';
-	// create string to contain the modified document
-	private $newDoc = '';	
-	// references for document and application
-	private $application = null;
-	private $document = null; 	
-	// list of scripts to ignore
-	private $ignoreList = null;
-	
-	/**
-	 * Constructs the plugin object
-	 * 
-	 * Link types are defined as constants
-	 * References to application and document are stored
-	 * 
-	 * @constructor
-	 * @param subject
-	 * @param array config array of configuration variables
-	 */
+    /**
+     *  Contains scripts pulled from the document
+     * @var array
+     */
+    private $scripts = array();
+    /**
+     * Contains css pulled from the document
+     * @var array
+     */
+    private $css = array();
+    /**
+     * Stores copy of assets before minification in case of failure
+     * @var array
+     */
+    private $preMinify = array();
+    /**
+     * Path to the minification library
+     * @var string
+     */
+    private $minifyPath = '/plugins/system/bottomjs/min/?f=';
+    /**
+     * Backup of the original document as a string
+     * @var null
+     */
+    private $origDoc = '';
+    /**
+     * The DOMDocument object that is used for processing
+     * @var DOMDocument|null
+     */
+    private $doc = null;
+    /**
+     * String version of the processed document
+     * @var string
+     */
+    private $newDoc = '';
+    /**
+     * Reference to JApplication object
+     * @var JApplication|null
+     */
+    private $application = null;
+    /**
+     * Reference to JDocument object
+     * @var JDocument|null
+     */
+    private $document = null;
+    /**
+     * List of scripts to ignore in the document
+     * @var array
+     */
+    private $ignoreList = array();
+
+    /**
+     * Constructs the plugin object
+     *
+     * Link types are defined
+     * References to application and document are stored
+     * @param object $subject
+     * @param array $config
+     */
 	function __construct(&$subject, $config = array())
 	{
 		define('TYPE_EXTERNAL', 2);
@@ -91,7 +123,8 @@ class  plgSystemBottomjs extends JPlugin
 		$caching = ($this->application->getCfg('caching') >= 2) ? true : false;
 		
 		// if the document is empty there is nothing to do here
-		if(($docStr = $this->document->render($caching, $params)) === '')
+        /** @var $docStr string */
+        if(($docStr = $this->document->render($caching, $params)) === '')
 			return;
 		
 		// take a backup of original document
@@ -121,11 +154,12 @@ class  plgSystemBottomjs extends JPlugin
 		}
 	}
 
-	/**
-	 * Creates a document object from a html string
-	 * @param string a string of HTML to crate a DOMDocument with
-	 * @return DOMDocument
-	 */
+    /**
+     * Creates a DOMDocument object from a string of HTML
+     * @param string $string
+     * @internal param $string string of HTML to crate a DOMDocument with
+     * @return DOMDocument
+     */
 	 private function createDOMDoc($string='')
 	 {
 	 	$doc = new DOMDocument;
@@ -151,7 +185,10 @@ class  plgSystemBottomjs extends JPlugin
 			return;
 		// TODO add as option
 		// compress output with gzip
-		if (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) ob_start("ob_gzhandler"); else ob_start();
+		if (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
+            ob_start("ob_gzhandler");
+        else
+            ob_start();
 		
 		JResponse::setBody($this->newDoc == '' ? $this->doc->saveHTML() : $this->newDoc);
 	}
@@ -175,7 +212,8 @@ class  plgSystemBottomjs extends JPlugin
 		$scripts = $tmp;
 		
 		// loop through instances of script tags in the document
-		while($element = array_shift($scripts))
+        /** @var $element DOMElement */
+        while($element = array_shift($scripts))
 		{
 			$attr = 'src';
 			
@@ -224,9 +262,10 @@ class  plgSystemBottomjs extends JPlugin
 	
 	/**
 	 * Method to check if a script has already been found
-	 * 
-	 * @param {string} string the string to be checked against the stored scripts
-	 */
+     *
+     * @param string $src the source attribute value to check
+     * @return bool
+     */
 	private function resolveDuplicates($src)
 	{		
 		// assume the script is not a duplicate until it is found
@@ -241,8 +280,10 @@ class  plgSystemBottomjs extends JPlugin
 		{
 			if($script['type'] === TYPE_INLINE)
 				continue;
-			
-			if($script['element']->getAttribute('src') == $src)
+
+            /** @var $element DOMElement */
+            $element = $script['element'];
+			if($element->getAttribute('src') == $src)
 			{
 				$found = true;
 				break;
@@ -251,12 +292,14 @@ class  plgSystemBottomjs extends JPlugin
 		
 		return $found;
 	}
-	
-	/**
-	 * Method to resolve a local absolute URL into a relative URL
-	 * 
-	 * @param {string} string the script tag that needs to be checked for resolution
-	 */
+
+    /**
+     * Method to resolve a local absolute URL into a relative URL
+     *
+     * @param DOMElement $element
+     * @param string $attr
+     * @return bool
+     */
 	 private function resolveLocalURL(DOMElement &$element, $attr)
 	 {
 	 	// get the source attribute so we can check it
@@ -287,17 +330,17 @@ class  plgSystemBottomjs extends JPlugin
 		$tmp = array();
 		for($i = 0; $i < $css->length; $i++)
 		{
-			$el = $css->item($i);
+            /** @var $el DOMElement */
+            $el = $css->item($i);
 			if($el->getAttribute('type') == 'text/css' || $el->getAttribute('rel') == 'stylesheet')
 				$tmp[] = $css->item($i);
 		}
 		$css = $tmp;
 		
 		// loop through instances of script tags in the document
-		while($element = array_shift($css))
+        /** @var $element DOMElement */
+        while($element = array_shift($css))
 		{
-			$attr = 'href';
-			
 			// set the css source type
 			// external is checked first so tht the url is resolved if applicable
 			$external = $this->isExternal($element, 'href');
@@ -315,15 +358,17 @@ class  plgSystemBottomjs extends JPlugin
 		return true;
 	}
 
-	/**
-	 * Method to catch the insert the scripts into a document.
-	 * 
-	 * @return  string  the processed document
-	 */
-	private function insert($assets, $insertAt=null)
+    /**
+     * Method to catch the insert the scripts into a document.
+     *
+     * @param string $assets the name of the asset set to insert
+     * @param string $insertAt the element to insert the assets into
+     * @return string  the processed document
+     */
+	private function insert($assets, $insertAt='')
 	{
 		// set the break point
-		$insertElement = $this->doc->getElementsByTagName($insertAt == null ? $assets == 'scripts' ? 'body' : 'head' : $insertAt)->item(0);
+		$insertElement = $this->doc->getElementsByTagName($insertAt == '' ? $assets == 'scripts' ? 'body' : 'head' : $insertAt)->item(0);
 		
 		// var for tracking inline output
 		$middle = '';
@@ -331,7 +376,8 @@ class  plgSystemBottomjs extends JPlugin
 		// loop assets and combine concurrent javascript tags
 		foreach ($this->$assets as $asset)
 		{
-			$element = $asset['element'];
+            /** @var $element DOMElement */
+            $element = $asset['element'];
 			
 			if($assets == 'scripts')
 			{
@@ -393,7 +439,7 @@ class  plgSystemBottomjs extends JPlugin
 	
 	/**
 	 * Checks script src attribute against ignore list
-	 * @param string the src string to check against the ignore list
+	 * @param string $src the src string to check against the ignore list
 	 * @return bool
 	 */
 	private function inIgnoreList($src)
@@ -426,32 +472,12 @@ class  plgSystemBottomjs extends JPlugin
 		// check for the src in the ignore list
 		return $found;
 	}
-	
-	/**
-	 * Checks to see if a script src has already been added to the scripts array
-	 * Used for resolving duplicates
-	 */
-	private function inScripts($src)
-	{
-		$found = false;
-		
-		// loop over scripts to see if the string property of the element arrays matches the string passed
-		foreach($this->scripts as $script)
-		{
-			if($script['type'] === TYPE_INLINE)
-				continue;
-			
-			if($script['element']->getAttribute('src') == $src)
-			{
-				$found = true;
-				break;
-			}
-		}
-		
-		return $found;
-	}
-	
-	private function minify($assets)
+
+    /**
+     * Resolves a set of elements into as few elements as possible using the minify library
+     * @param string $assets the set of assets to minify
+     */
+    private function minify($assets)
 	{
 		$list =& $this->$assets;
 		
@@ -468,7 +494,9 @@ class  plgSystemBottomjs extends JPlugin
 			if($asset['type'] == TYPE_INTERNAL)
 			{
 				$addScript = true;
-				$url .= $asset['element']->getAttribute($assets == 'scripts' ? 'src' : 'href').',';
+                /** @var $element DOMElement */
+                $element = $asset['element'];
+				$url .= $element->getAttribute($assets == 'scripts' ? 'src' : 'href') . ',';
 								
 				if($insertAt == 0)
 					$insertAt = $key;
@@ -496,7 +524,6 @@ class  plgSystemBottomjs extends JPlugin
 		}
 		else
 		{
-			
 			$element = new DOMElement('link');
 			$dom->appendChild($element);
 			$element->setAttribute('type', 'text/css');
@@ -513,7 +540,8 @@ class  plgSystemBottomjs extends JPlugin
 	 * 
 	 * @param DOMElement $element the element to check
 	 * @param string $attr the attribute to use in the check
-	 */
+     * @return bool
+     */
 	private function isExternal(DOMElement $element, $attr)
 	{
 		// get the elments attribute value	
@@ -549,8 +577,14 @@ class  plgSystemBottomjs extends JPlugin
 	{		
 		return strpos($src, '/mootools') !== false;			
 	}
-	
-	private function array_insert_at($index, $insert, $array)
+
+    /**
+     * @param $index
+     * @param $insert
+     * @param $array
+     * @return array
+     */
+    private function array_insert_at($index, $insert, $array)
 	{
 		return array_merge(array_slice($array, 0, $index), array($insert), array_slice($array, $index));
 	}
