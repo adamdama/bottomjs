@@ -13,6 +13,7 @@
  * TODO ignore css for specific media types, print projection etc
  * TODO check for duplicate inline js
  * TODO check for inline css
+ * TODO Find out what ignore empties is supposed to do
  */
 
 // no direct access
