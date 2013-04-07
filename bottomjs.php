@@ -11,7 +11,6 @@
  * TODO minify script tag contents
  * TODO remove empty src and href attributes
  * TODO ignore css for specific media types, print projection etc
- * TODO check for duplicate inline js
  * TODO check for inline css
  * TODO Find out what ignore empties is supposed to do
  */
@@ -235,7 +234,7 @@ class  plgSystemBottomjs extends JPlugin
 				if((int) $this->params->get('resolve_duplicates', 1))
 				{
 					//check to see if the script is already in the array
-					$found = $type === TYPE_INLINE ? false : $this->resolveDuplicates($src);
+					$found = $type === TYPE_INLINE ? $this->resolveDuplicates($element) : $this->resolveDuplicates($element);
 					
 					if(!$found)
 						$this->scripts[] = array('element' => $element->cloneNode(true), 'type' => $type);
@@ -260,14 +259,14 @@ class  plgSystemBottomjs extends JPlugin
 		
 		return true;
 	}
-	
+
 	/**
 	 * Method to check if a script has already been found
-     *
-     * @param string $src the source attribute value to check
-     * @return bool
-     */
-	private function resolveDuplicates($src)
+	 *
+	 * @param DOMElement $element the DOMElement to check
+	 * @return bool
+	 */
+	private function resolveDuplicates(DOMElement $element)
 	{		
 		// assume the script is not a duplicate until it is found
 		$found = false;
@@ -279,15 +278,32 @@ class  plgSystemBottomjs extends JPlugin
 		// try an exact match first
 		foreach($this->scripts as $script)
 		{
-			if($script['type'] === TYPE_INLINE)
-				continue;
+			/** @var $el DOMElement */
+			$el = $script['element'];
 
-            /** @var $element DOMElement */
-            $element = $script['element'];
-			if($element->getAttribute('src') == $src)
+			// check on same object first
+			if($el->isSameNode($element))
 			{
 				$found = true;
 				break;
+			}
+
+			// if inline check the node value otherwise check the src attribute
+			if($script['type'] === TYPE_INLINE)
+			{
+				if($el->nodeValue == $element->nodeValue)
+				{
+					$found = true;
+					break;
+				}
+			}
+			else
+			{
+				if($el->getAttribute('src') == $element->getAttribute('src'))
+				{
+					$found = true;
+					break;
+				}
 			}
 		}
 		
